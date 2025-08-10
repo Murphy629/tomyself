@@ -25,7 +25,6 @@ Thumbs.db
 *.swo
 
 # Docker
-**/data/
 docker-compose.override.yml
 *.pid
 
