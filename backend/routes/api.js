@@ -1,21 +1,47 @@
 const express = require('express');
 const router = express.Router();
-const { queryApi } = require('../influxClient');
+const { queryApi } = require('../services/influxClient');
 
 router.get('/data', async (req, res) => {
-  const flux = `from(bucket: "${process.env.INFLUXDB_BUCKET}")
-    |> range(start: -1h)
-    |> limit(n: 20)`;
+  const bucket = process.env.INFLUXDB_BUCKET;
+  const hours = Number(req.query.h || 24);
+  const measurement = (req.query.m || 'weather').trim();
 
-  const out = [];
+  const flux = `
+    from(bucket: "${bucket}")
+      |> range(start: -${hours}h)
+      |> filter(fn: (r) => r._measurement == "${measurement}")
+      |> keep(columns: ["_time","_field","_value","location"])
+      |> pivot(rowKey:["_time","location"], columnKey: ["_field"], valueColumn: "_value")
+      |> sort(columns: ["_time"], desc: true)
+      |> limit(n: 50)
+  `;
+
+  const rows = [];
   try {
-    await queryApi.queryRows(flux, {
-      next(row, tableMeta) { out.push(tableMeta.toObject(row)); },
-      error(err) { console.error(err); res.status(500).send(String(err)); },
-      complete() { res.json(out); }
+    await new Promise((resolve, reject) => {
+      queryApi.queryRows(flux, {
+        next: (row, meta) => rows.push(meta.toObject(row)),
+        error: reject,
+        complete: resolve
+      });
     });
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
+
+    if (rows.length === 0) {
+      return res.status(200).json({
+        count: 0,
+        message: `No points found in bucket "${bucket}" for measurement "${measurement}" in last ${hours}h.`
+      });
+    }
+
+    return res.json({
+      count: rows.length,
+      latest: rows[0],     // newest first due to sort desc
+      rows
+    });
+  } catch (err) {
+    console.error('[influx] /data query failed:', err);
+    return res.status(500).json({ error: String(err) });
   }
 });
 

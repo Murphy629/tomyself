@@ -1,6 +1,12 @@
+var path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+// console.log('Influx Org:', process.env.INFLUXDB_ORG);
+// console.log('Influx Bucket:', process.env.INFLUXDB_BUCKET);
+// console.log('Influx Token:', process.env.INFLUXDB_TOKEN);
+
+
 var createError = require('http-errors');
 var express = require('express');
-var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
