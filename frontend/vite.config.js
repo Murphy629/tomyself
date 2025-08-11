@@ -15,8 +15,9 @@ export default defineConfig(({ mode }) => {
       port: PORT,
       host: '0.0.0.0',
       proxy: {
+        // Note: the proxy only works during dev mode, for the prod build, nginx is required
         '/backend': {
-          target: `http://backend:${BACKEND_PORT}`,
+          target: `http://localhost:${BACKEND_PORT}`,
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/backend/, '')
