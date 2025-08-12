@@ -36,7 +36,7 @@ COPY . .
 # RUN cd frontend && npm install
 
 # Expose ports
-EXPOSE 5173 3000 8086
+EXPOSE 5173 3000
 
 # Default command
 CMD ["bash"]
