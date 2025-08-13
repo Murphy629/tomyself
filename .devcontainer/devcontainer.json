@@ -2,21 +2,32 @@
   "name": "myproject",
   "build": { "dockerfile": "../Dockerfile", "context": ".." },
 
-  // mount & folder (mirrors: -v "$PWD":/app)
+  // Mount the project into /app (inside the container)
   "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
   "workspaceFolder": "/app",
 
-  // expose your dev ports
+  // Match the non-root user in the base image
+  "remoteUser": "root",
+
+  // Expose common dev ports
   "forwardPorts": [5173, 3000],
 
-  // IMPORTANT: let VS Code replace the command with a long-running shell
+  // Let VS Code replace the container's default command with its server process
   "overrideCommand": true,
 
-  // optional quality-of-life
+  // Install deps after container is created
   "postCreateCommand": "npm ci || npm install",
+
+  // Recommended extensions
   "customizations": {
-    "vscode": { "extensions": ["ms-azuretools.vscode-docker"] }
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker"
+      ]
+    }
   },
+
+  // Nice labels for port forwarding
   "portsAttributes": {
     "5173": { "label": "Vite", "onAutoForward": "openBrowser" },
     "3000": { "label": "App",  "onAutoForward": "openBrowser" }
