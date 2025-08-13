@@ -1,5 +1,5 @@
 {
-  "name": "Ubuntu Node v22 Dev (multi-arch, root)",
+  "name": "SEP_Proj_Dev_Env",
   "build": {
     "dockerfile": "../Dockerfile"
   },
