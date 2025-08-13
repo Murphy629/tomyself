@@ -1,0 +1,24 @@
+{
+  "name": "myproject",
+  "build": { "dockerfile": "../Dockerfile", "context": ".." },
+
+  // mount & folder (mirrors: -v "$PWD":/app)
+  "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
+  "workspaceFolder": "/app",
+
+  // expose your dev ports
+  "forwardPorts": [5173, 3000],
+
+  // IMPORTANT: let VS Code replace the command with a long-running shell
+  "overrideCommand": true,
+
+  // optional quality-of-life
+  "postCreateCommand": "npm ci || npm install",
+  "customizations": {
+    "vscode": { "extensions": ["ms-azuretools.vscode-docker"] }
+  },
+  "portsAttributes": {
+    "5173": { "label": "Vite", "onAutoForward": "openBrowser" },
+    "3000": { "label": "App",  "onAutoForward": "openBrowser" }
+  }
+}
