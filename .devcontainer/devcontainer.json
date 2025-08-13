@@ -1,35 +1,15 @@
 {
-  "name": "myproject",
-  "build": { "dockerfile": "../Dockerfile", "context": ".." },
-
-  // Mount the project into /app (inside the container)
-  "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
-  "workspaceFolder": "/app",
-
-  // Match the non-root user in the base image
-  "remoteUser": "root",
-
-  // Expose common dev ports
-  "forwardPorts": [5173, 3000],
-
-  // Let VS Code replace the container's default command with its server process
-  "overrideCommand": true,
-
-  // Install deps after container is created
-  "postCreateCommand": "npm ci || npm install",
-
-  // Recommended extensions
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-azuretools.vscode-docker"
-      ]
-    }
+  "name": "Ubuntu Node v22 Dev (multi-arch, root)",
+  "build": {
+    "dockerfile": "../Dockerfile"
   },
-
-  // Nice labels for port forwarding
-  "portsAttributes": {
-    "5173": { "label": "Vite", "onAutoForward": "openBrowser" },
-    "3000": { "label": "App",  "onAutoForward": "openBrowser" }
-  }
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  },
+  "extensions": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode"
+  ],
+  "remoteUser": "root",
+  "postCreateCommand": "bash -lc 'node -v && npm -v && corepack enable || true'"
 }
