@@ -1,30 +1,35 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import { ref, onMounted } from 'vue'
+
+const backendResult = ref('checking...')
+const grafanaUrl = '/grafana/'   // via Vite proxy
+
+async function checkBackend() {
+  try {
+    // simplest possible fetch: root of backend
+    const res = await fetch('/backend', { method: 'GET' })
+    const text = await res.text()
+    backendResult.value = `HTTP ${res.status}\n${text}`
+  } catch (err) {
+    backendResult.value = `Error: ${err}`
+  }
+}
+
+onMounted(checkBackend)
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
-</template>
+  <div style="padding:1rem; max-width: 1000px; margin: auto;">
+    <h2>Backend Connection Test</h2>
+    <pre>{{ backendResult }}</pre>
+    <button @click="checkBackend">Re-check</button>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
+    <h2 style="margin-top:2rem;">Grafana (via /grafana proxy)</h2>
+    <iframe
+      :src="grafanaUrl"
+      style="width:100%; height:600px; border:1px solid #ccc; border-radius:8px;"
+      title="Grafana"
+    ></iframe>
+    <p>If Grafana doesn’t appear, open directly: <a :href="grafanaUrl" target="_blank">/grafana</a></p>
+  </div>
+</template>
