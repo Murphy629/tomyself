@@ -44,6 +44,28 @@ Connect InfluxDB via SSH tunnel
 ssh -L 8086:localhost:8086 group_project_server
 ```
 
+### Sample Data Import & Query
+#### Write Sample Data
+```bash
+ts=$(date +%s%N)
+echo "test_measurement,tag1=hello field1=123i $ts" > data/sample.lp
+
+curl -i -sS -X POST "http://localhost:8086/api/v2/write?org=${ORG}&bucket=${BUCKET}&precision=ns" \
+  -H "Authorization: Token ${TOKEN}" \
+  --data-binary @data/sample.lp
+
+#### Query Data
+curl --request POST "http://localhost:8086/api/v2/query?org=${ORG}" \
+  --header "Authorization: Token ${TOKEN}" \
+  --header 'Accept: application/csv' \
+  --header 'Content-type: application/vnd.flux' \
+  --data 'from(bucket: "group_bucket")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "test_measurement")'
+
+#### Example Output
+...,123,test_measurement,hello
+
 ## Frontend
 
 - Node.js - v22
