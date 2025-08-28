@@ -1,5 +1,15 @@
 # README.md
 
+# Project Board | Progress Trackers
+
+We provide 3 different views to track our project progress. They share same data, but focusing on different aspects.
+
+[Task Tracker(not started, in progress, done)](https://www.notion.so/Task-Tracker-253979c8562480ac953dfe4f6261aa31?pvs=21)
+
+[Individual Tracker (track individual progress)](https://www.notion.so/Individual-Tracker-253979c8562480ff86b2cbb59be39ea4?pvs=21)
+
+[Team Tracker (track backend, frontend, database dev progress etc)](https://www.notion.so/Team-Tracker-253979c85624802b90d0fdf51d51c089?pvs=21)
+
 # Architecture & Environment & Instructions
 
 This project apply docker to ensure environment consistency and better collaboration. The details are followings:
