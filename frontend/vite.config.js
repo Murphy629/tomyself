@@ -23,12 +23,20 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: FRONTEND_PORT,
       proxy: {
-        // Backend API (dev only; use Nginx in prod)
+        // Backend API (legacy path, prefer /api; dev only, use Nginx in prod)
         '/backend': {
           target: `http://localhost:${BACKEND_PORT}`,
           changeOrigin: true,
           secure: false,
           rewrite: p => p.replace(/^\/backend/, ''),
+        },
+
+        // Preferred: API under /api (matches backend routes)
+        '/api': {
+          target: `http://localhost:${BACKEND_PORT}`,
+          changeOrigin: true,
+          secure: false
+          // no rewrite: keep /api/* for backend
         },
 
         // Grafana UI & API (dev only; use Nginx in prod)
