@@ -2,16 +2,21 @@
 import { ref, onMounted } from 'vue'
 
 const backendResult = ref('checking...')
-const grafanaUrl = '/grafana/'   // via Vite proxy
+const grafanaUrl = '/grafana/'   // dev: via Vite proxy (and same path in prod via Nginx)
 
 async function checkBackend() {
   try {
-    // simplest possible fetch: root of backend
-    const res = await fetch('/backend', { method: 'GET' })
-    const text = await res.text()
-    backendResult.value = `HTTP ${res.status}\n${text}`
+    const res = await fetch('/api/health', { method: 'GET' });
+    const text = await res.text();
+    // Try to pretty-print JSON if possible
+    try {
+      const obj = JSON.parse(text);
+      backendResult.value = `HTTP ${res.status}\n` + JSON.stringify(obj, null, 2);
+    } catch {
+      backendResult.value = `HTTP ${res.status}\n${text}`;
+    }
   } catch (err) {
-    backendResult.value = `Error: ${err}`
+    backendResult.value = `Error: ${err}`;
   }
 }
 
