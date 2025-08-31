@@ -1,6 +1,9 @@
 # README.md
 
 # Project Board | Progress Trackers
+The Product Backlog provides a complete list of project requirements and user stories.
+
+[Product Backlog](https://www.notion.so/25f979c8562480029c1ad3f027ac7f13?v=25f979c8562480259f77000c7e5de6ac&source=copy_link)
 
 We provide 3 different views to track our project progress. They share same data, but focusing on different aspects.
 
