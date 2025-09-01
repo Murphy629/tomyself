@@ -6,6 +6,8 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env'), override: true
 // console.log('Influx Org:', process.env.INFLUXDB_ORG);
 // console.log('Influx Bucket:', process.env.INFLUXDB_BUCKET);
 // console.log('Influx Token:', process.env.INFLUXDB_TOKEN);
+const authRouter = require('./routes/auth');
+
 
 
 var createError = require('http-errors');
@@ -24,6 +26,9 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/auth', authRouter);
+
 
 // ----- CORS (Dev) -----
 const whitelist = (process.env.CORS_WHITELIST || '')

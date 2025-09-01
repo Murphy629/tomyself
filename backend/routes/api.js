@@ -4,6 +4,9 @@ const axios = require('axios');
 const { InfluxDB, Point } = require('@influxdata/influxdb-client');
 const { queryApi } = require('../services/influxClient');
 
+const requireAuth = require('../middleware/auth');
+
+
 // Resolve env var names across INFLUXDB_* and INFLUX_* prefixes
 const INFLUX_URL = process.env.INFLUXDB_URL || process.env.INFLUX_URL;
 const INFLUX_ORG = process.env.INFLUXDB_ORG || process.env.INFLUX_ORG;
@@ -30,7 +33,7 @@ const grafana = axios.create({
   timeout: 15000
 });
 
-router.get('/data', async (req, res) => {
+router.get('/data', requireAuth, async (req, res) => {
   const bucket = INFLUX_BUCKET;
   const hours = Number(req.query.h || 24);
   const measurement = (req.query.m || 'weather').trim();
@@ -75,7 +78,7 @@ router.get('/data', async (req, res) => {
 
 // ---- Influx: write points ----
 // Body: [{ measurement, tags: {...}, fields: {...}, timestamp? }, ...]
-router.post('/influx/write', async (req, res) => {
+router.post('/influx/write', requireAuth, async (req, res) => {
   try {
     const rows = Array.isArray(req.body) ? req.body : [];
     for (const r of rows) {
