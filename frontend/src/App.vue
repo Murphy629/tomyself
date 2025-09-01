@@ -30,6 +30,10 @@
       Refresh
     </button>
   </div>
+
+
+<iframe src="http://localhost:5000/d-solo/null?orgId=1&from=1756717370677&to=1756727339908&panelId=123124" width="450" height="200" frameborder="0"></iframe>
+
 </template>
 
 <script setup>
