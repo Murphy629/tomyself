@@ -31,13 +31,17 @@
     </button>
   </div>
 
+  <br>
 
-<iframe src="http://localhost:5000/d-solo/null?orgId=1&from=1756717370677&to=1756727339908&panelId=123124" width="450" height="200" frameborder="0"></iframe>
+  <h1>Components</h1>
+  <p>test component 1</p>
+  <GrafanaComponentTest />
 
 </template>
 
 <script setup>
 import { reactive, onMounted } from 'vue';
+import GrafanaComponentTest from './components/GrafanaComponentTest.vue';
 
 // Use vite proxy: /backend → http://localhost:${BACKEND_PORT}
 const BASE = '/backend/test-connection';
