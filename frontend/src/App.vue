@@ -1,40 +1,67 @@
+<template>
+  <h1>Service Status</h1>
+  <div style="max-width:600px; margin:2rem auto; font-family:sans-serif;">
+    <!-- <h2 style="margin-bottom:1rem;">Service Status</h2> -->
+
+    <table style="width:100%; border-collapse:collapse; text-align:left;">
+      <thead>
+        <tr style="background:#f5f5f5;">
+          <th style="padding:.5rem; border:1px solid #ddd;">Service</th>
+          <th style="padding:.5rem; border:1px solid #ddd; width:120px;">Port</th>
+          <th style="padding:.5rem; border:1px solid #ddd; width:140px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="s in services" :key="s.key">
+          <td style="padding:.5rem; border:1px solid #ddd;">{{ s.label }}</td>
+          <td style="padding:.5rem; border:1px solid #ddd;">
+            {{ s.port ?? '—' }}
+          </td>
+          <td style="padding:.5rem; border:1px solid #ddd;">
+            <span v-if="s.ok">✅ success</span>
+            <span v-else-if="s.ok === false">❌ failure</span>
+            <span v-else>…checking</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <button @click="checkAll" style="margin-top:1rem; padding:.4rem .8rem; border:1px solid #ccc; border-radius:4px; cursor:pointer;">
+      Refresh
+    </button>
+  </div>
+</template>
+
 <script setup>
-import { ref, onMounted } from 'vue'
+import { reactive, onMounted } from 'vue';
 
-const backendResult = ref('checking...')
-const grafanaUrl = '/grafana/'   // dev: via Vite proxy (and same path in prod via Nginx)
+// Use vite proxy: /backend → http://localhost:${BACKEND_PORT}
+const BASE = '/backend/test-connection';
 
-async function checkBackend() {
+const services = reactive([
+  { key: 'backend', label: 'Backend', path: '/backend-status', ok: null, port: null },
+  { key: 'mysql', label: 'MySQL', path: '/mysql-status', ok: null, port: null },
+  { key: 'influx', label: 'InfluxDB', path: '/influx-status', ok: null, port: null },
+  { key: 'influxWrite', label: 'InfluxDB Write', path: '/influx-write-test', ok: null, port: null, method: 'POST' },
+  { key: 'grafana', label: 'Grafana', path: '/grafana-status', ok: null, port: null },
+]);
+
+async function checkOne(s) {
   try {
-    const res = await fetch('/api/health', { method: 'GET' });
-    const text = await res.text();
-    // Try to pretty-print JSON if possible
-    try {
-      const obj = JSON.parse(text);
-      backendResult.value = `HTTP ${res.status}\n` + JSON.stringify(obj, null, 2);
-    } catch {
-      backendResult.value = `HTTP ${res.status}\n${text}`;
-    }
-  } catch (err) {
-    backendResult.value = `Error: ${err}`;
+    const res = await fetch(BASE + s.path, { method: s.method || 'GET' });
+    const data = await res.json();
+    s.ok = res.ok && data.status;
+    s.port = data.port ?? null;
+  } catch {
+    s.ok = false;
+    s.port = null;
   }
 }
 
-onMounted(checkBackend)
+async function checkAll() {
+  services.forEach(s => { s.ok = null; s.port = null; });
+  await Promise.all(services.map(s => checkOne(s)));
+}
+
+onMounted(checkAll);
 </script>
-
-<template>
-  <div style="padding:1rem; max-width: 1000px; margin: auto;">
-    <h2>Backend Connection Test</h2>
-    <pre>{{ backendResult }}</pre>
-    <button @click="checkBackend">Re-check</button>
-
-    <h2 style="margin-top:2rem;">Grafana (via /grafana proxy)</h2>
-    <iframe
-      :src="grafanaUrl"
-      style="width:100%; height:600px; border:1px solid #ccc; border-radius:8px;"
-      title="Grafana"
-    ></iframe>
-    <p>If Grafana doesn’t appear, open directly: <a :href="grafanaUrl" target="_blank">/grafana</a></p>
-  </div>
-</template>

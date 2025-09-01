@@ -31,14 +31,6 @@ export default defineConfig(({ mode }) => {
           rewrite: p => p.replace(/^\/backend/, ''),
         },
 
-        // Preferred: API under /api (matches backend routes)
-        '/api': {
-          target: `http://localhost:${BACKEND_PORT}`,
-          changeOrigin: true,
-          secure: false
-          // no rewrite: keep /api/* for backend
-        },
-
         // Grafana UI & API (dev only; use Nginx in prod)
         // If you want the SPA to use /grafana, set in Grafana:
         //   server.serve_from_sub_path = true

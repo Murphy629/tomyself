@@ -16,6 +16,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var apiRouter = require('./routes/api');
+var testConnectionRouter = require('./tests/connection');
 
 var app = express();
 
@@ -66,6 +67,8 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);
+app.use('/test-connection', testConnectionRouter);
+
 
 // catch 404 and error handler (left as generated)
 app.use(function(req, res, next) { next(createError(404)); });
