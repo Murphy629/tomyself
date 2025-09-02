@@ -3,8 +3,17 @@
     <h1 class="title">All Grafana Components</h1>
     <div class="grafana-wrapper">
         <div>
-            <p>Grafana Component - 01</p>
-            <GrafanaComponentTest />
+            
+            <hr class="sep" />
+            <p>Grafana Component - 02 (Bar Chart)</p>
+            <PanelBarChart />
+
+            <p>Grafana Component - 03 (Stat)</p>
+            <PanelStat />
+
+            <p>Grafana Component - 04 (Time Series)</p>
+            <PanelTimeSeries />
+
         </div>
 
     </div>
@@ -12,7 +21,10 @@
 </template>
 
 <script setup>
-import GrafanaComponentTest from '../components/GrafanaComponentTest.vue'
+//import GrafanaComponentTest from '../components/GrafanaComponentTest.vue'
+import PanelBarChart from '../components/panels/PanelBarChart.vue'
+import PanelStat from '../components/panels/PanelStat.vue'
+import PanelTimeSeries from '../components/panels/PanelTimeSeries.vue'
 </script>
 
 <style scoped>
