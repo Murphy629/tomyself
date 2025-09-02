@@ -3,28 +3,35 @@ const router = express.Router();
 const axios = require('axios');
 const { InfluxDB, Point } = require('@influxdata/influxdb-client');
 const { queryApi } = require('../services/influxClient');
-
 const requireAuth = require('../middleware/auth');
 
+// 读取 env（保持与你现有的服务一致）
+const INFLUX_URL_ENV   = () => process.env.INFLUXDB_URL    || process.env.INFLUX_URL;
+const INFLUX_ORG_ENV   = () => process.env.INFLUXDB_ORG    || process.env.INFLUX_ORG;
+const INFLUX_BUCKET_ENV= () => process.env.INFLUXDB_BUCKET || process.env.INFLUX_BUCKET;
+const INFLUX_TOKEN_ENV = () => process.env.INFLUXDB_TOKEN  || process.env.INFLUX_TOKEN;
 
-// Resolve env var names across INFLUXDB_* and INFLUX_* prefixes
-const INFLUX_URL = process.env.INFLUXDB_URL || process.env.INFLUX_URL;
-const INFLUX_ORG = process.env.INFLUXDB_ORG || process.env.INFLUX_ORG;
-const INFLUX_BUCKET = process.env.INFLUXDB_BUCKET || process.env.INFLUX_BUCKET;
-const INFLUX_TOKEN = process.env.INFLUXDB_TOKEN || process.env.INFLUX_TOKEN;
+// ---------- 按需创建 writeApi，避免启动时 env 未就绪 ----------
+let _writeApi = null;
+function ensureWriteApi() {
+  if (_writeApi) return _writeApi;
 
-// ---- Influx write client (server-side only; do not expose token to browser) ----
-const influx = new InfluxDB({
-  url: INFLUX_URL,
-  token: INFLUX_TOKEN
-});
-const writeApi = influx.getWriteApi(
-  INFLUX_ORG,
-  INFLUX_BUCKET,
-  'ns' // precision
-);
+  const url    = INFLUX_URL_ENV();
+  const org    = INFLUX_ORG_ENV();
+  const bucket = INFLUX_BUCKET_ENV();
+  const token  = INFLUX_TOKEN_ENV();
 
-// ---- Grafana HTTP client (token optional if anonymous viewer is enabled) ----
+  if (!url)    throw new Error('INFLUXDB_URL/INFLUX_URL not set');
+  if (!org)    throw new Error('INFLUXDB_ORG/INFLUX_ORG not set');
+  if (!bucket) throw new Error('INFLUXDB_BUCKET/INFLUX_BUCKET not set');
+  if (!token)  throw new Error('INFLUXDB_TOKEN/INFLUX_TOKEN not set');
+
+  const influx = new InfluxDB({ url, token });
+  _writeApi = influx.getWriteApi(org, bucket, 'ns');
+  return _writeApi;
+}
+
+// ---- Grafana HTTP client（保持不变）----
 const grafana = axios.create({
   baseURL: process.env.GRAFANA_BASE_URL,
   headers: process.env.GRAFANA_TOKEN
@@ -33,17 +40,23 @@ const grafana = axios.create({
   timeout: 15000
 });
 
+// 读取数据：支持可选 tag 作为 pivot 维度（如果没传 tag，就只按 _time pivot）
 router.get('/data', requireAuth, async (req, res) => {
-  const bucket = INFLUX_BUCKET;
+  const bucket = INFLUX_BUCKET_ENV();
   const hours = Number(req.query.h || 24);
   const measurement = (req.query.m || 'weather').trim();
+  const tagCol = (req.query.tag || '').trim(); // 可选：比如 tag=location
+
+  // 动态 keep/pivot（如果没 tag，就不把 tag 放到 keep 和 rowKey 里）
+  const keepCols = ['_time', '_field', '_value'].concat(tagCol ? [tagCol] : []);
+  const rowKey = ['_time'].concat(tagCol ? [tagCol] : []);
 
   const flux = `
     from(bucket: "${bucket}")
       |> range(start: -${hours}h)
       |> filter(fn: (r) => r._measurement == "${measurement}")
-      |> keep(columns: ["_time","_field","_value","location"])
-      |> pivot(rowKey:["_time","location"], columnKey: ["_field"], valueColumn: "_value")
+      |> keep(columns: ${JSON.stringify(keepCols)})
+      |> pivot(rowKey:${JSON.stringify(rowKey)}, columnKey: ["_field"], valueColumn: "_value")
       |> sort(columns: ["_time"], desc: true)
       |> limit(n: 50)
   `;
@@ -67,7 +80,7 @@ router.get('/data', requireAuth, async (req, res) => {
 
     return res.json({
       count: rows.length,
-      latest: rows[0],     // newest first due to sort desc
+      latest: rows[0],
       rows
     });
   } catch (err) {
@@ -76,11 +89,12 @@ router.get('/data', requireAuth, async (req, res) => {
   }
 });
 
-// ---- Influx: write points ----
-// Body: [{ measurement, tags: {...}, fields: {...}, timestamp? }, ...]
+// 写数据（按需拿 writeApi）
 router.post('/influx/write', requireAuth, async (req, res) => {
   try {
     const rows = Array.isArray(req.body) ? req.body : [];
+    const writeApi = ensureWriteApi();
+
     for (const r of rows) {
       const p = new Point(r.measurement);
       if (r.tags) for (const [k, v] of Object.entries(r.tags)) p.tag(k, String(v));
@@ -100,8 +114,7 @@ router.post('/influx/write', requireAuth, async (req, res) => {
   }
 });
 
-// ---- Grafana: render single panel as PNG ----
-// GET /api/grafana/panel.png?dashboardUid=xxx&panelId=2&width=1200&height=500&theme=light
+// Grafana 面板渲染
 router.get('/grafana/panel.png', async (req, res) => {
   try {
     const { dashboardUid, panelId, width = 1200, height = 500, theme = 'light' } = req.query;
@@ -115,8 +128,7 @@ router.get('/grafana/panel.png', async (req, res) => {
   }
 });
 
-// ---- Grafana: dashboard metadata (optional) ----
-// GET /api/grafana/dashboards/:uid
+// Grafana dashboard 元数据
 router.get('/grafana/dashboards/:uid', async (req, res) => {
   try {
     const r = await grafana.get(`/api/dashboards/uid/${req.params.uid}`);

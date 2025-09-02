@@ -15,9 +15,12 @@
     "debug": "~2.6.9",
     "dotenv": "^17.2.1",
     "express": "~4.16.1",
+    "express-rate-limit": "^8.0.1",
+    "geoip-lite": "^1.4.10",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "~1.9.1"
+    "morgan": "~1.9.1",
+    "ua-parser-js": "^2.0.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
