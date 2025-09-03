@@ -69,3 +69,45 @@ ssh -L 8086:localhost:8086 group_project_server
 - Node.js - v22
 - Framework - Express
 - Runtime Environment - Docker Container
+
+## 👤 Frontend Skeleton UI | Designed by Yangxinmeng
+
+This frontend includes a skeleton UI system designed to support multi-stage loading interfaces for time series visualizations. The UI focuses on:
+
+- **Responsiveness**: Grid-based layout with flex utilities
+- **Theming Support**: Light / Dark mode skeletons
+- **Component Reuse**: Modular `SkeletonUI.vue` under `src/components`
+- **Frontend Stack**:  
+  - Vue 3 + `<script setup>`  
+  - Vite 5  
+  - Tailwind CSS  
+  - DevContainer + Docker for isolated environment
+
+🧱 Example Component:
+```vue
+<SkeletonUI mode="light" />
+```
+
+📁 Folder Structure:
+```
+frontend/
+├── src/
+│   ├── App.vue
+│   ├── main.js
+│   └── components/
+│       └── SkeletonUI.vue
+```
+
+📜 Customization Example:
+```html
+<body class="bg-gray-100 text-gray-900">
+```
+
+🚀 To launch the frontend:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+You can view the full prototype on Notion / Miro board (see internal documentation).

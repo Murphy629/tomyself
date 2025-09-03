@@ -8,8 +8,13 @@
   },
   "extensions": [
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin"
+  ],
+  "forwardPorts": [
+    5173
   ],
   "remoteUser": "root",
-  "postCreateCommand": "bash -lc 'node -v && npm -v && corepack enable || true'"
+  "postCreateCommand": "cd frontend && npm install && npm run dev"
 }
