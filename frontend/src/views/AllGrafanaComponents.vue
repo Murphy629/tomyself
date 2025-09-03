@@ -14,6 +14,15 @@
             <p>Grafana Component - 03 (Time Series)</p>
             <PanelTimeSeries />
 
+            <p>Grafana Component - 04 (Bar Gauge)</p>
+            <PanelBarGauge />
+
+            <p>Grafana Component - 05 (Table)</p>
+            <PanelTable />
+
+            <p>Grafana Component - 06 (Pie Chart)</p>
+            <PanelPieChart />
+
             
 
         </div>
@@ -27,6 +36,9 @@
 import PanelBarChart from '../components/panels/PanelBarChart.vue'
 import PanelStat from '../components/panels/PanelStat.vue'
 import PanelTimeSeries from '../components/panels/PanelTimeSeries.vue'
+import PanelBarGauge from '../components/panels/PanelBarGauge.vue'
+import PanelTable from '../components/panels/PanelTable.vue'
+import PanelPieChart from '../components/panels/PanelPieChart.vue'
 </script>
 
 <style scoped>
