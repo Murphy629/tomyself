@@ -68,6 +68,8 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);
 app.use('/test-connection', testConnectionRouter);
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
+app.use("/api/user/settings", require("./routes/userSettings"));
 
 
 // catch 404 and error handler (left as generated)
