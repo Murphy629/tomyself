@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 // console.log('Influx Org:', process.env.INFLUXDB_ORG);
 // console.log('Influx Bucket:', process.env.INFLUXDB_BUCKET);
 // console.log('Influx Token:', process.env.INFLUXDB_TOKEN);
+// const authRouter = require('./routes/auth');
 
 
 var createError = require('http-errors');
@@ -26,6 +27,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);
+// app.use('/auth', authRouter);
+
 
 // catch 404 and error handler (left as generated)
 app.use(function(req, res, next) { next(createError(404)); });
