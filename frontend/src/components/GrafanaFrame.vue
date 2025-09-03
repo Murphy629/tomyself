@@ -6,6 +6,8 @@
       referrerpolicy="no-referrer-when-downgrade"
       allow="fullscreen"
     />
+    <!-- 调试用：看到最终 URL，确定参数都对上；确认 OK 后可删 -->
+    <pre v-if="debug" style="font-size:12px; margin-top:8px; overflow:auto">{{ src }}</pre>
   </div>
 </template>
 
@@ -23,10 +25,19 @@ const props = defineProps<{
   theme?: 'light' | 'dark'
   // Optional: fullBase (e.g., 'http://localhost:5000'), default uses same-origin '/grafana'
   base?: string
+
+  slug?: string
+  /** orgId 数字，通常是 1 */
+  orgId?: number
+  /** 打开后会在面板下方显示最终 URL，便于排查 */
+  debug?: boolean
 }>()
 
 const theme = props.theme ?? 'light'
 const base = props.base ?? '/grafana'
+
+const slug  = props.slug  ?? '_'          // 以前用 '_'，现在允许传真实 slug
+const orgId = props.orgId ?? 1
 
 /**
  * Build embed URL.
