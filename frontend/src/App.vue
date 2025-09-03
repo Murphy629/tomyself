@@ -1,16 +1,20 @@
 <template>
   <MenuBar />
-
+  
   <ServiceStatus />
+
+  <DefaultLayout1 />
+
   <AllGrafanaComponents />
 
 </template>
 
 <script setup>
-import GrafanaComponentTest from './components/GrafanaComponentTest.vue';
+// import GrafanaComponentTest from './components/GrafanaComponentTest.vue';
 import MenuBar from './components/Menu.vue';
 import ServiceStatus from './components/ServiceStatus.vue';
 import AllGrafanaComponents from './views/AllGrafanaComponents.vue';
+import DefaultLayout1 from './views/DefaultLayout1.vue';
 
 import { onMounted } from 'vue';
 
