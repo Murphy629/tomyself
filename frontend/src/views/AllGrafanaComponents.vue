@@ -5,14 +5,16 @@
         <div>
             
             <hr class="sep" />
-            <p>Grafana Component - 02 (Bar Chart)</p>
+            <p>Grafana Component - 01 (Bar Chart)</p>
             <PanelBarChart />
 
-            <p>Grafana Component - 03 (Stat)</p>
+            <p>Grafana Component - 02 (Stat)</p>
             <PanelStat />
 
-            <p>Grafana Component - 04 (Time Series)</p>
+            <p>Grafana Component - 03 (Time Series)</p>
             <PanelTimeSeries />
+
+            
 
         </div>
 
