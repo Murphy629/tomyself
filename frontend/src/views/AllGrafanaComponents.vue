@@ -8,7 +8,6 @@
             <GrafanaComponentTest />
         </div>
 
-
         <div class="grafana-component">
           <!-- Dark - currently not needed, put it here anyway -->
           <!-- <LineChartSkeletonStyle01 :width="720" :height="260" :points="30" :speed="1.8" dark /> -->
@@ -25,7 +24,6 @@
         <p>Grafana Component - 04</p>
         <LineChartSkeletonStyle02 theme="light" />
       </div>
-
 
     </div>
   </div>

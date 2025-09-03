@@ -1,9 +1,10 @@
 <template>
   <MenuBar />
-  
+
   <ServiceStatus />
 
   <DefaultLayout1 />
+  
 
   <AllGrafanaComponents />
 
