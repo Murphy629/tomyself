@@ -13,5 +13,5 @@
 </template>
 
 <script setup lang="ts">
-import GrafanaFrame from '../GrafanaFrame.vue'
+import GrafanaFrame from './GrafanaFrame.vue'
 </script>

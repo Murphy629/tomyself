@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import CardSkeleton from '../components/CardSkeleton.vue';
+import CardSkeleton from '../components/skeletons/CardSkeleton.vue';
 </script>
 
 <style scoped>

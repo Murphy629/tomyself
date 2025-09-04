@@ -1,19 +1,34 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
-const HomeView = () => import('../views/HomeView.vue')
-const SignupView = () => import('../views/SignupView.vue')
-const LoginView = () => import('../views/LoginView.vue')
+import LoginPage from '../views/LoginPage.vue' // adjust path if it's in /pages
+import HomePage from '../views/HomePage.vue'
 
 const routes = [
-  { path: '/', name: 'home', component: HomeView },
-  { path: '/signup', name: 'signup', component: SignupView },
-  { path: '/login', name: 'login', component: LoginView }, // 👈 新增
+  {
+    path: '/login',     // 👈 URL will be base-url/log-in
+    name: 'Login',
+    component: LoginPage
+  },
+  {
+    path: '/',
+    name: 'Home',
+    component: HomePage
+  },
+  {
+    path: '/signup',
+    name: 'Signup',
+    component: () => import('../views/SignupPage.vue')
+  },
+  {
+    path: '/:catchAll(.*)',
+    name: 'NotFound',
+    component: HomePage
+  }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL), // Vite projects
   routes,
-  scrollBehavior: () => ({ top: 0 }),
 })
+
 
 export default router

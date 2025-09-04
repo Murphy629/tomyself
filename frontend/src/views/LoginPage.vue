@@ -91,6 +91,11 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
+onMounted(() => {
+  document.title = 'BetterInflux - Login'
+})
+
 
 const router = useRouter()
 const form = reactive({

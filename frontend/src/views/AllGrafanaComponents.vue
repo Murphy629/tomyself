@@ -63,10 +63,10 @@
 </template>
 
 <script setup>
-import GrafanaComponentTest from '../components/GrafanaComponentTest.vue'
-import LineChartSkeletonStyle01 from '../components/LineChartSkeletonStyle01.vue'
-import LineChartSkeletonStyle02 from '../components/LineChartSkeletonStyle02.vue'
-import GaugeSkeletonStyle01 from '../components/GaugeSkeletonStyle01.vue'
+import GrafanaComponentTest from '../components/panels/GrafanaComponentTest.vue'
+import LineChartSkeletonStyle01 from '../components/skeletons/LineChartSkeletonStyle01.vue'
+import LineChartSkeletonStyle02 from '../components/skeletons/LineChartSkeletonStyle02.vue'
+import GaugeSkeletonStyle01 from '../components/skeletons/GaugeSkeletonStyle01.vue'
 
 import PanelBarChart from '../components/panels/PanelBarChart.vue'
 import PanelStat from '../components/panels/PanelStat.vue'
