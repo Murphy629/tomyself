@@ -121,7 +121,7 @@
 
           <p class="minor">
             Already have an account?
-            <a class="link" href="#" @click.prevent>Log in</a>
+            <router-link to="/login">Login</router-link>
           </p>
         </form>
       </section>
@@ -131,6 +131,11 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  document.title = "Sign Up - BetterInflux";
+})
 
 const form = reactive({
   name: '',

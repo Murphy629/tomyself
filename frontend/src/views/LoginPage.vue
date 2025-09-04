@@ -100,6 +100,11 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  document.title = "Login - BetterInflux";
+})
 
 const form = reactive({
   email: '',
