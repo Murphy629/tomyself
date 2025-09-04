@@ -42,3 +42,6 @@ frontend/logs
 # Coverage / test outputs
 coverage/
 *.lcov
+# local samples & secrets
+data/*.lp
+.env
