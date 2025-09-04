@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router'      // ✅ 新增
-// 你原有的全局样式在此保持不变，例如 import './MainStyle.css'
+import router from './router'
+import PanelUI from './ui/panel-ui.js'   // 引入 PanelUI 插件
 
-createApp(App).use(router).mount('#app')  // ✅ 新增 .use(router)
+const app = createApp(App)
+app.use(router)       // 保留 router
+app.use(PanelUI)      // 保留 PanelUI
+app.mount('#app')

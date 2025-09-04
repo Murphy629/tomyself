@@ -3,26 +3,59 @@
     <h1 class="title">All Grafana Components</h1>
     <div class="grafana-wrapper">
 
-        <div class="grafana-component">
-            <p>Grafana Component - 01</p>
-            <GrafanaComponentTest />
-        </div>
+      <!-- 原来的 GrafanaComponentTest -->
+      <div class="grafana-component">
+        <p>Grafana Component - 01 (Test)</p>
+        <GrafanaComponentTest />
+      </div>
 
-        <div class="grafana-component">
-          <!-- Dark - currently not needed, put it here anyway -->
-          <!-- <LineChartSkeletonStyle01 :width="720" :height="260" :points="30" :speed="1.8" dark /> -->
-          <p>Grafana Component - 02</p>
-          <LineChartSkeletonStyle01 :width="720" :height="260" :points="30" :speed="1.8" />
-        </div>
+      <!-- 原来的 Skeleton 样式组件 -->
+      <div class="grafana-component">
+        <p>Grafana Component - 02 (Skeleton Line Chart)</p>
+        <LineChartSkeletonStyle01 width="720" height="260" :points="30" :speed="1.8" />
+      </div>
 
       <div class="grafana-component">
-        <p>Grafana Component - 03</p>
+        <p>Grafana Component - 03 (Skeleton Gauge)</p>
         <GaugeSkeletonStyle01 :count="3" :size="160" :thickness="20" :speed="1.6" />
       </div>
-      
+
       <div class="grafana-component">
-        <p>Grafana Component - 04</p>
+        <p>Grafana Component - 04 (Skeleton Line Chart 2)</p>
         <LineChartSkeletonStyle02 theme="light" />
+      </div>
+
+      <hr class="sep" />
+
+      <!-- 新的 Panel UI 组件 -->
+      <div class="grafana-component">
+        <p>Grafana Component - 05 (Bar Chart)</p>
+        <PanelBarChart />
+      </div>
+
+      <div class="grafana-component">
+        <p>Grafana Component - 06 (Stat)</p>
+        <PanelStat />
+      </div>
+
+      <div class="grafana-component">
+        <p>Grafana Component - 07 (Time Series)</p>
+        <PanelTimeSeries />
+      </div>
+
+      <div class="grafana-component">
+        <p>Grafana Component - 08 (Bar Gauge)</p>
+        <PanelBarGauge />
+      </div>
+
+      <div class="grafana-component">
+        <p>Grafana Component - 09 (Table)</p>
+        <PanelTable />
+      </div>
+
+      <div class="grafana-component">
+        <p>Grafana Component - 10 (Pie Chart)</p>
+        <PanelPieChart />
       </div>
 
     </div>
@@ -31,11 +64,16 @@
 
 <script setup>
 import GrafanaComponentTest from '../components/GrafanaComponentTest.vue'
-  
-import LineChartSkeletonStyle01 from '../components/LineChartSkeletonStyle01.vue';
-import LineChartSkeletonStyle02 from '../components/LineChartSkeletonStyle02.vue';
-import GaugeSkeletonStyle01 from '../components/GaugeSkeletonStyle01.vue';
+import LineChartSkeletonStyle01 from '../components/LineChartSkeletonStyle01.vue'
+import LineChartSkeletonStyle02 from '../components/LineChartSkeletonStyle02.vue'
+import GaugeSkeletonStyle01 from '../components/GaugeSkeletonStyle01.vue'
 
+import PanelBarChart from '../components/panels/PanelBarChart.vue'
+import PanelStat from '../components/panels/PanelStat.vue'
+import PanelTimeSeries from '../components/panels/PanelTimeSeries.vue'
+import PanelBarGauge from '../components/panels/PanelBarGauge.vue'
+import PanelTable from '../components/panels/PanelTable.vue'
+import PanelPieChart from '../components/panels/PanelPieChart.vue'
 </script>
 
 <style scoped>
