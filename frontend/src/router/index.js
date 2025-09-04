@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginPage from '../views/LoginPage.vue' // adjust path if it's in /pages
+import LoginPage from '../views/LoginPage.vue'
 import HomePage from '../views/HomePage.vue'
 
 const routes = [
   {
-    path: '/login',     // 👈 URL will be base-url/log-in
+    path: '/login',
     name: 'Login',
     component: LoginPage
   },
@@ -22,7 +22,7 @@ const routes = [
     path: '/:catchAll(.*)',
     name: 'NotFound',
     component: HomePage
-  }
+  } // need to be modified
 ]
 
 const router = createRouter({
