@@ -3,8 +3,8 @@
     <header class="site-header">
       <RouterLink to="/" class="brand">BetterInflux</RouterLink>
       <nav class="nav">
-        <!-- 右上角 Signup 按钮 -->
-        <RouterLink to="/signup" class="btn-signup">Sign up</RouterLink>
+       <RouterLink to="/login" class="btn-login">Log in</RouterLink>
+       <RouterLink to="/signup" class="btn-signup">Sign up</RouterLink>
       </nav>
     </header>
 
@@ -34,5 +34,21 @@
   background:#5aa8ff; color:#fff; text-decoration:none; font-weight:600;
 }
 .btn-signup:hover{ filter:brightness(1.05); }
+.btn-login, .btn-signup {
+  height:36px; padding:0 14px; border-radius:999px;
+  text-decoration:none; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+}
+
+.btn-login {
+  background:#e2e8f0; color:#0f172a;
+}
+.btn-login:hover { filter:brightness(0.95); }
+
+.btn-signup {
+  background:#5aa8ff; color:#fff;
+}
+.btn-signup:hover { filter:brightness(1.05); }
+
 .site-main{ min-height: calc(100vh - 56px); }
 </style>

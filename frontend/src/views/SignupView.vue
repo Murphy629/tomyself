@@ -1,14 +1,14 @@
 <!-- src/views/SignupView.vue -->
 <template>
   <div class="signup-page">
-    <!-- 背景顶条（浅蓝） -->
+    <!-- Background top bar (light blue) -->
     <div class="top-strip"></div>
 
     <div class="card">
-      <!-- 左侧视觉区 -->
+      <!-- Left visual area -->
       <section class="visual">
         <div class="illus">
-          <!-- 占位插图：可替换为你的图片 -->
+          <!-- Placeholder illustration: can be replaced with your own image -->
           <svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
@@ -38,7 +38,7 @@
         </div>
       </section>
 
-      <!-- 右侧注册表单（注意：与参考视觉相反，我们放在右边） -->
+      <!-- Right-side registration form (Note: Contrary to the reference visual, we placed it on the right) -->
       <section class="form">
         <h2>Sign up</h2>
 
@@ -130,10 +130,10 @@ const showPwd = ref(false)
 const loading = ref(false)
 const error = ref('')
 
-// 简单前端校验 + 模拟提交；你可以改成实际 API：POST /auth/signup
+// Simple front-end verification + simulated submission; you can change it to actual API：POST /auth/signup
 async function onSubmit() {
   error.value = ''
-  // 基础校验
+  // Basic verification
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
   if (!emailOk) {
     error.value = 'Please enter a valid email.'
@@ -148,10 +148,10 @@ async function onSubmit() {
     return
   }
 
-  // 调用后端接口
+  
   try {
     loading.value = true
-    // 例子：
+    // eg：
     // const res = await fetch('/api/auth/signup', {
     //   method: 'POST',
     //   headers: { 'Content-Type': 'application/json' },
@@ -159,10 +159,10 @@ async function onSubmit() {
     // })
     // if (!res.ok) throw new Error(await res.text())
 
-    // Demo：假装成功
+    // Demo：Fake it and make it
     await new Promise(r => setTimeout(r, 800))
 
-    // 成功后跳转登录页
+    // Jump to the login page after success
     router.push('/login')
   } catch (e) {
     error.value = e?.message || 'Signup failed. Please try again.'
@@ -179,7 +179,7 @@ async function onSubmit() {
   --blue-200: #d2e7ff;
   --blue-300: #b7d8ff;
   --blue-400: #8ec5ff;
-  --blue-500: #5aa8ff; /* 主按钮 */
+  --blue-500: #5aa8ff; 
   --text-900: #0f172a;
   --text-600: #475569;
   --muted: #94a3b8;
@@ -205,7 +205,7 @@ async function onSubmit() {
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(30, 64, 175, 0.12);
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 左视觉 / 右表单 */
+  grid-template-columns: 1fr 1fr; 
   overflow: hidden;
 }
 
@@ -320,6 +320,6 @@ input:focus {
 
 @media (max-width: 980px) {
   .card { grid-template-columns: 1fr; }
-  .visual { display: none; } /* 小屏仅显示表单，提高转化 */
+  .visual { display: none; } 
 }
 </style>
