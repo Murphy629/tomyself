@@ -22,7 +22,12 @@ const routes = [
     path: '/:catchAll(.*)',
     name: 'NotFound',
     component: HomePage
-  } // need to be modified
+  }, // need to be modified
+  {
+    path: '/initialization',
+    name: 'Initialization',
+    component: () => import('../views/InitializationPage.vue')
+  }
 ]
 
 const router = createRouter({
