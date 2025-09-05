@@ -1,21 +1,4 @@
+<!-- enable vue3 router, all components are moved to HomePage.vue -->
 <template>
-  <!-- <MenuBar />
-  <ServiceStatus />
-  <DefaultLayout1 />
-  <AllGrafanaComponents /> -->
   <router-view />
 </template>
-
-<script setup>
-// import MenuBar from './components/Menu.vue'
-// import ServiceStatus from './components/ServiceStatus.vue'
-// import router from './router'
-// import AllGrafanaComponents from './views/AllGrafanaComponents.vue'
-// import DefaultLayout1 from './views/DefaultLayout1.vue'
-
-// import { onMounted } from 'vue'
-// onMounted(() => {
-//   document.title = 'BetterInflux - Simple & Elegant'
-// })
-
-</script>
