@@ -1,199 +1,134 @@
 <template>
-  <div class="filter-card">
-    <!-- 标题 -->
-    <header class="header">
-      <h2>Query Filter</h2>
+  <div class="wrap">
+    <header class="window-dots">
+      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
     </header>
 
-    <!-- 条件列表 -->
-    <draggable v-model="filters" item-key="id" class="filter-list" handle=".drag-handle">
-      <template #item="{ element, index }">
-        <div class="filter-row">
-          <span class="drag-handle">☰</span>
-
-          <select v-model="element.field" class="input">
-            <option disabled value="">Select Field</option>
-            <option v-for="f in fields" :key="f" :value="f">{{ f }}</option>
-          </select>
-
-          <select v-model="element.operator" class="input op">
-            <option value="=">=</option>
-            <option value="!=">!=</option>
-            <option value="in">IN</option>
-            <option value="between">Between</option>
-          </select>
-
-          <input v-model="element.value" placeholder="Value" class="input" />
-
-          <button class="btn remove" @click="removeFilter(index)">✕</button>
+    <section class="grid">
+      <!-- 左侧：选择 + 条件 + 时间 -->
+      <div class="left">
+        <div class="selector-row">
+          <BucketSelector v-model="bucket" :buckets="buckets"/>
+          <MeasurementSelector v-model="measurement" :measurements="measurements"/>
+          <FieldSelector v-model="field" :fields="fields"/>
         </div>
-      </template>
-    </draggable>
 
-    <!-- 操作按钮 -->
-    <div class="actions">
-      <button class="btn add" @click="addFilter">+ Add Filter</button>
-    </div>
+        <ConditionBuilder v-model="conditions" :fields="fields" @logic-change="logic => groupLogic = logic" />
 
-    <!-- 时间范围 -->
-    <div class="time-range">
-      <label>Time Range:</label>
-      <select v-model="timeRange" class="input">
-        <option value="15m">Last 15 minutes</option>
-        <option value="1h">Last 1 hour</option>
-        <option value="24h">Last 24 hours</option>
-        <option value="custom">Custom…</option>
-      </select>
-      <input
-        v-if="timeRange === 'custom'"
-        type="datetime-local"
-        v-model="customRange.start"
-        class="input"
-      />
-      <span v-if="timeRange === 'custom'">to</span>
-      <input
-        v-if="timeRange === 'custom'"
-        type="datetime-local"
-        v-model="customRange.end"
-        class="input"
-      />
-    </div>
+        <TimeRangePicker v-model="timeRange" />
 
-    <!-- 输出结果 -->
-    <footer class="footer">
-      <button class="btn run" @click="runQuery">Run Query</button>
-    </footer>
+        <div class="actions">
+          <button class="btn run" @click="onRun">Run Query</button>
+        </div>
+
+        <FluxCodePreview :flux="fluxCode"/>
+      </div>
+
+      <!-- 右侧：结果预览 -->
+      <div class="right">
+        <h3 class="title">Result Preview</h3>
+        <ResultPreview :data="mockData"/>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-//import draggable from 'vuedraggable'
-
-interface Filter {
-  id: number
-  field: string
-  operator: string
-  value: string
-}
+import { computed, ref } from 'vue'
+import BucketSelector from './filters/BucketSelector.vue'
+import MeasurementSelector from './filters/MeasurementSelector.vue'
+import FieldSelector from './filters/FieldSelector.vue'
+import ConditionBuilder from './filters/ConditionBuilder.vue'
+import TimeRangePicker from './filters/TimeRangePicker.vue'
+import ResultPreview from './filters/ResultPreview.vue'
+import FluxCodePreview from './filters/FluxCodePreview.vue'
 
 const props = defineProps<{
-  fields: string[] // 外部传入可选字段
+  buckets?: string[]
+  measurements?: string[]
+  fields?: string[]
 }>()
+const emit = defineEmits<{ (e:'run-query', payload:any):void }>()
 
-const filters = ref<Filter[]>([])
-const timeRange = ref('15m')
-const customRange = ref({ start: '', end: '' })
+// demo 数据源（可换成实际 API 结果）
+const buckets = props.buckets ?? ['energy','iot','prod']
+const measurements = props.measurements ?? ['temperature','humidity','pressure']
+const fields = props.fields ?? ['_value','location','host','device']
 
-function addFilter() {
-  filters.value.push({
-    id: Date.now(),
-    field: '',
-    operator: '=',
-    value: ''
-  })
-}
+const bucket = ref('')
+const measurement = ref('')
+const field = ref('')
+const conditions = ref<any[]>([])
+const groupLogic = ref<'AND'|'OR'>('AND')
+const timeRange = ref<any>({ kind:'preset', preset:'1h' })
 
-function removeFilter(i: number) {
-  filters.value.splice(i, 1)
-}
-
-function runQuery() {
-  const payload = {
-    filters: filters.value,
-    timeRange: timeRange.value,
-    customRange: customRange.value
+const fluxCode = computed(() => {
+  let code = `from(bucket: "${bucket.value || 'energy'}")\n`
+  // 时间
+  if (timeRange.value?.kind === 'preset') {
+    const map:{[k:string]:string} = { '15m':'-15m', '1h':'-1h', '12h':'-12h' }
+    code += `  |> range(start: ${map[timeRange.value.preset] ?? '-1h'})\n`
+  } else if (timeRange.value?.kind === 'custom') {
+    code += `  |> range(start: ${JSON.stringify(timeRange.value.start)}, stop: ${JSON.stringify(timeRange.value.end)})\n`
   }
-  console.log('Running query with payload:', payload)
-  // 这里后续可以 emit 或调用 API
+  // measurement / field
+  if (measurement.value) {
+    code += `  |> filter(fn: (r) => r["_measurement"] == "${measurement.value}")\n`
+  }
+  if (field.value && field.value !== '_value') {
+    code += `  |> filter(fn: (r) => exists r["${field.value}"])\n`
+  }
+  // 条件
+  if (conditions.value.length) {
+    const parts = conditions.value.map((c:any) => {
+      if (c.operator === 'between') {
+        return `(r["${c.field}"] >= ${JSON.stringify(c.valueMin)} and r["${c.field}"] <= ${JSON.stringify(c.valueMax)})`
+      } else if (c.operator === 'in') {
+        const arr = String(c.value || '').split(',').map(s=>s.trim()).filter(Boolean).map(v=>JSON.stringify(v))
+        return `(${arr.map(v => `r["${c.field}"] == ${v}`).join(' or ')})`
+      } else {
+        return `r["${c.field}"] ${c.operator} ${JSON.stringify(c.value)}`
+      }
+    })
+    code += `  |> filter(fn: (r) => ${parts.join(` ${groupLogic.value.toLowerCase()} `)})\n`
+  }
+  return code.trim()
+})
+
+const mockData = ref<any[]>([]) // 预览占位用
+
+function onRun(){
+  const payload = {
+    bucket: bucket.value,
+    measurement: measurement.value,
+    field: field.value,
+    conditions: conditions.value,
+    logic: groupLogic.value,
+    timeRange: timeRange.value,
+    flux: fluxCode.value
+  }
+  emit('run-query', payload)
+  // 这里可对接后端 API；目前先填充预览假数据
+  mockData.value = [{x:1,y:2},{x:2,y:3}]
 }
 </script>
 
 <style scoped>
-.filter-card {
-  background: #f0f6ff;
-  border: 1px solid #cfe3ff;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 80, 180, 0.1);
-  max-width: 800px;
-  margin: 0 auto;
-}
+.wrap{background:#f0f6ff;border:1px solid #cfe3ff;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(33,76,190,.06)}
+.window-dots{display:flex;gap:8px;margin-bottom:10px}
+.dot{width:10px;height:10px;border-radius:50%}
+.red{background:#ff5f56}.yellow{background:#ffbd2e}.green{background:#27c93f}
 
-.header {
-  margin-bottom: 12px;
-  color: #2c73ff;
-}
+.grid{display:grid;grid-template-columns: 1.1fr .9fr;gap:16px}
+.left{display:flex;flex-direction:column;gap:12px}
+.right{background:#fff;border:1px solid #e3efff;border-radius:14px;padding:12px}
+.title{margin:0 0 8px 0;color:#0b1220}
 
-.filter-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #fff;
-  border: 1px solid #a8caff;
-  border-radius: 10px;
-  padding: 6px 10px;
-}
-
-.drag-handle {
-  cursor: grab;
-  color: #7fb0ff;
-}
-
-.input {
-  border: 1px solid #cfe3ff;
-  border-radius: 6px;
-  padding: 6px 8px;
-  flex: 1;
-}
-
-.input.op {
-  max-width: 90px;
-}
-
-.actions {
-  margin-top: 12px;
-}
-
-.btn {
-  border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.btn.add {
-  background: #a8caff;
-  color: #fff;
-}
-
-.btn.remove {
-  background: #ff5f56;
-  color: white;
-}
-
-.btn.run {
-  background: #2c73ff;
-  color: #fff;
-  margin-top: 14px;
-}
-
-.time-range {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.footer {
-  margin-top: 20px;
-  text-align: right;
+.selector-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.actions{display:flex;justify-content:flex-end}
+.btn.run{background:#2c73ff;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(46,112,255,.25)}
+@media (max-width: 900px){
+  .grid{grid-template-columns:1fr}
+  .selector-row{grid-template-columns:1fr}
 }
 </style>
