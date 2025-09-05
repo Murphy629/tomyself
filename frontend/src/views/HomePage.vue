@@ -2,6 +2,7 @@
   <MenuBar />
   <ServiceStatus />
   <DefaultLayout1 />
+  <QueryComponent />
   <AllGrafanaComponents />
 </template>
 
@@ -10,6 +11,7 @@ import MenuBar from '../components/Menu.vue'
 import ServiceStatus from '../components/ServiceStatus.vue'
 import AllGrafanaComponents from './AllGrafanaComponents.vue'
 import DefaultLayout1 from './DefaultLayout1.vue'
+import QueryComponent from './QueryComponent.vue'
 
 
 import { onMounted } from 'vue'
