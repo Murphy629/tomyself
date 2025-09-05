@@ -3,7 +3,7 @@
     <div class="card" role="group" aria-label="Role selection">
       <header class="header">
         <h1>Please select your role</h1>
-        <p class="sub">You can change this later in Settings.</p>
+        <p class="sub">You can change this later in Settings later.</p>
       </header>
 
       <div
