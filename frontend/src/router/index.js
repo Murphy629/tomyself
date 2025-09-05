@@ -1,8 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../views/LoginPage.vue'
 import HomePage from '../views/HomePage.vue'
+import QueryBuilderPage from '../views/QueryBuilderPage.vue'
 
 const routes = [
+  {
+    path: '/query-builder',
+    name: 'QueryBuilder',
+    component: QueryBuilderPage
+  },
   {
     path: '/login',
     name: 'Login',
