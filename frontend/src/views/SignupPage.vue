@@ -5,25 +5,73 @@
 
     <div class="card" role="main">
       <!-- LEFT: promo (mirrored) -->
-      <aside class="promo-pane" aria-hidden="false">
-        <div class="illust">
-          <div class="blob big"></div>
-          <div class="blob small"></div>
-          <div class="tile"></div>
-          <div class="bar one"></div>
-          <div class="bar two"></div>
+      <aside class="promo-pane" aria-label="Product highlights">
+        <div
+          class="carousel"
+          ref="carouselRef"
+          @scroll.passive="onScroll"
+          tabindex="0"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Information slides"
+        >
+          <!-- Slide 1 -->
+          <article class="slide" aria-roledescription="slide" :aria-label="`Slide 1 of 3`">
+            <div class="illust">
+              <div class="blob big"></div>
+              <div class="blob small"></div>
+              <div class="tile"></div>
+              <div class="bar one"></div>
+              <div class="bar two"></div>
+            </div>
+            <h2>Create Your Account</h2>
+            <p>
+              Start tracking progress, collaborate with your team, and keep
+              your projects on course—everything in one place.
+            </p>
+          </article>
+
+          <!-- Slide 2 -->
+          <article class="slide" aria-roledescription="slide" :aria-label="`Slide 2 of 3`">
+            <div class="illust alt">
+              <div class="blob big"></div>
+              <div class="tile"></div>
+              <div class="bar one"></div>
+              <div class="bar two"></div>
+            </div>
+            <h2>Invite Teammates</h2>
+            <p>
+              Share access, assign roles, and get everyone aligned from day one.
+            </p>
+          </article>
+
+          <!-- Slide 3 -->
+          <article class="slide" aria-roledescription="slide" :aria-label="`Slide 3 of 3`">
+            <div class="illust">
+              <div class="blob small"></div>
+              <div class="tile"></div>
+              <div class="bar one"></div>
+              <div class="bar two"></div>
+            </div>
+            <h2>Kick Off Faster</h2>
+            <p>
+              Use templates and clean dashboards to turn metrics into action.
+            </p>
+          </article>
         </div>
 
-        <h2>Create Your Account</h2>
-        <p>
-          Start tracking progress, collaborate with your team, and keep
-          your projects on course—everything in one place.
-        </p>
-
-        <div class="pager">
-          <span class="dot active"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
+        <!-- pager controls -->
+        <div class="pager" role="tablist" aria-label="Select slide">
+          <button
+            v-for="n in 3"
+            :key="n"
+            class="dot"
+            :class="{ active: activeSlide === (n-1) }"
+            role="tab"
+            :aria-selected="activeSlide === (n-1)"
+            :aria-controls="`slide-${n}`"
+            @click="goTo(n - 1)"
+          />
         </div>
       </aside>
 
@@ -121,7 +169,7 @@
 
           <p class="minor">
             Already have an account?
-            <router-link to="/login">Login</router-link>
+            <router-link class="link" to="/login">Login</router-link>
           </p>
         </form>
       </section>
@@ -130,12 +178,16 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { onMounted } from 'vue'
+import { reactive, ref, onMounted, onBeforeUnmount } from 'vue'
 
 onMounted(() => {
   document.title = "Sign Up - BetterInflux";
-})
+  computeSlideWidth();
+  window.addEventListener('resize', computeSlideWidth);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', computeSlideWidth);
+});
 
 const form = reactive({
   name: '',
@@ -148,6 +200,28 @@ const form = reactive({
 const showPwd = ref(false)
 const showConfirm = ref(false)
 
+/* Carousel state/logic (same behavior as Login) */
+const carouselRef = ref<HTMLDivElement | null>(null)
+const activeSlide = ref(0)
+let slideWidth = 0
+
+function computeSlideWidth() {
+  if (!carouselRef.value) return
+  slideWidth = carouselRef.value.clientWidth
+  goTo(activeSlide.value, false) // keep slide snapped on resize
+}
+function goTo(index: number, smooth = true) {
+  if (!carouselRef.value) return
+  activeSlide.value = Math.max(0, Math.min(2, index))
+  const behavior: ScrollBehavior = smooth ? 'smooth' : 'auto'
+  carouselRef.value.scrollTo({ left: activeSlide.value * slideWidth, behavior })
+}
+function onScroll() {
+  if (!carouselRef.value || slideWidth === 0) return
+  const idx = Math.round(carouselRef.value.scrollLeft / slideWidth)
+  activeSlide.value = Math.max(0, Math.min(2, idx))
+}
+
 function handleSubmit() {
   if (form.password !== form.confirm) {
     alert('Passwords do not match.')
@@ -157,7 +231,6 @@ function handleSubmit() {
     alert('Please accept the Terms & Privacy.')
     return
   }
-  // Dummy success for now
   alert(
     `Signed up!\nName: ${form.name}\nEmail: ${form.email}\n(Password length: ${form.password.length})`
   )
@@ -165,7 +238,7 @@ function handleSubmit() {
 </script>
 
 <style scoped>
-/* Reuse the same tokens and styles as LoginPage.vue */
+/* tokens (keep consistent with LoginPage.vue) */
 :root {
   --blue: #3b6cff;
   --blue-600: #2f5af0;
@@ -181,12 +254,15 @@ function handleSubmit() {
 .login-page {
   min-height: 100vh;
   background: linear-gradient(180deg, var(--blue) 0 220px, var(--bg) 220px 100%);
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 24px;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   color: var(--ink);
 }
+
+.top-strip { height: 0; }
 
 .card {
   width: min(1040px, 92vw);
@@ -194,24 +270,49 @@ function handleSubmit() {
   border-radius: 22px;
   box-shadow: 0 18px 50px rgba(16, 24, 40, 0.12);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr;  /* promo | form */
   overflow: hidden;
   border: 1px solid var(--line);
 }
 
-/* promo (now left side) */
+/* promo (left) */
 .promo-pane {
   background: #f9fbff;
   border-right: 1px solid var(--line);
-  padding: 40px 48px;
+  padding: 32px 0 24px; /* slides have side padding */
   display: grid;
-  gap: 14px;
+  gap: 10px;
   align-content: start;
 }
 
-.promo-pane h2 { margin-top: 4px; font-size: 20px; }
-.promo-pane p { color: #475467; font-size: 14px; line-height: 1.6; }
+/* Carousel (same as Login) */
+.carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.carousel::-webkit-scrollbar { display: none; }
 
+.slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  padding: 0 48px;   /* side padding to match form pane */
+}
+
+.promo-pane h2 {
+  margin-top: 12px;
+  font-size: 20px;
+}
+
+.promo-pane p {
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* illustration bits */
 .illust {
   position: relative;
   height: 180px;
@@ -222,6 +323,8 @@ function handleSubmit() {
   place-items: center;
   overflow: hidden;
 }
+.illust.alt { background: #fcfdff; }
+
 .blob.big {
   position: absolute; inset: -30% auto auto -20%;
   width: 260px; height: 260px; border-radius: 50%;
@@ -239,15 +342,35 @@ function handleSubmit() {
 .bar.one { width: 70px; bottom: 28px; left: 50%; transform: translateX(-50%); }
 .bar.two { width: 40px; bottom: 14px; left: 50%; transform: translateX(-50%); opacity: .6; }
 
-.pager { display: flex; gap: 8px; margin-top: 4px; }
-.dot { width: 8px; height: 8px; border-radius: 999px; background: #cbd5e1; display: inline-block; }
-.dot.active { background: var(--blue); }
+.pager {
+  display: flex;
+  gap: 8px;
+  padding: 0 48px;
+  margin-top: 8px;
+  justify-content: center;
+}
 
-/* form (now right side) */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: #d1d5db;
+  transition: background 0.2s, transform 0.2s;
+}
+.dot.active {
+  transform: scale(1.3);
+  /* background: #1d4ed8;  */
+  /* match login button hue */
+}
+
+/* form (right) */
 .form-pane {
   padding: 40px 48px;
   display: grid;
-  align-content: start;
+  align-content: center;
+  justify-items: stretch;
   gap: 18px;
 }
 
@@ -257,6 +380,7 @@ form { display: grid; gap: 14px; }
 .field { display: grid; gap: 8px; }
 .label { font-size: 13px; color: var(--muted); }
 
+/* equal-sized inputs */
 input[type="text"],
 input[type="email"],
 .password-wrap > input {
@@ -275,6 +399,7 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(59,108,255,0.15);
 }
 
+/* password with eye inside */
 .password-wrap { position: relative; display: grid; }
 .password-wrap .toggle {
   position: absolute;
@@ -295,26 +420,35 @@ input:focus {
   color: #121826;
 }
 
+/* links */
 .link { font-size: 13px; color: var(--blue); text-decoration: none; }
 .link:hover { text-decoration: underline; }
 
+/* submit button (hard-coded color; no CSS vars) */
 .submit {
   margin-top: 6px;
   height: 44px;
-  border: none; border-radius: 10px;
-  background: var(--blue); color: #fff;
-  font-weight: 600; font-size: 15px;
+  border: none;
+  border-radius: 10px;
+  background: #1d4ed8;
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
   transition: transform .02s ease, background .15s ease;
 }
 .submit:active { transform: translateY(1px); }
-.submit:hover { background: var(--blue-600); }
+.submit:hover { background: #2563eb; }
 
-.minor { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
-
-/* responsive: hide promo on small screens */
+/* responsive: on mobile stack; keep promo visible like Login */
 @media (max-width: 900px) {
   .card { grid-template-columns: 1fr; }
-  .promo-pane { display: none; }
+  .promo-pane {
+    border-right: none;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+  }
+  .slide { padding: 0 24px; }
+  .pager { padding: 0 24px; }
 }
 </style>
