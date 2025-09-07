@@ -70,18 +70,10 @@ router.get('/influx-status', async (_req, res) => {
 });
 
 router.post('/influx-write-test', async (_req, res) => {
-  console.log('[influx] write config', {
-    url: process.env.INFLUX_URL || process.env.INFLUXDB_URL,
-    org: process.env.INFLUXDB_ORG || process.env.INFLUX_ORG,
-    bucket: process.env.INFLUXDB_BUCKET || process.env.INFLUX_BUCKET,
-    hasToken: Boolean(process.env.INFLUXDB_TOKEN || process.env.INFLUX_TOKEN),
-  });
-  
   try {
     if (!writeApi) {
       return res.status(400).json({
         status: false,
-        port: INFLUX_PORT,
         error: 'writeApi not initialized (missing token/org/bucket?)',
       });
     }
@@ -89,15 +81,22 @@ router.post('/influx-write-test', async (_req, res) => {
     const p = new Point('diagnostic')
       .tag('source', 'backend-test')
       .floatField('ping', 1)
-      .timestamp(Date.now() * 1e6);
+      .timestamp(BigInt(Date.now()) * 1000000n); // ns
 
     writeApi.writePoint(p);
     await writeApi.flush();
 
-    res.json({ status: true, port: INFLUX_PORT, wrote: 1, measurement: 'diagnostic' });
+    res.json({ status: true, wrote: 1 });
   } catch (err) {
-    console.error('[influx] write-test failed:', err?.message || err);
-    res.status(500).json({ status: false, port: INFLUX_PORT, error: String(err?.message || err) });
+    const detail = {
+      message: err?.message,
+      name: err?.name,
+      statusCode: err?.statusCode ?? err?.response?.status,
+      body: err?.body ?? err?.response?.data,
+      stack: err?.stack?.split('\n').slice(0,3).join('\n'),
+    };
+    console.error('[influx] write-test failed detail:', detail);
+    res.status(500).json({ status: false, error: detail });
   }
 });
 
