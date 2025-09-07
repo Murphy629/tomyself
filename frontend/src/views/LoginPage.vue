@@ -213,7 +213,8 @@ function onScroll() {
 
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--blue) 0 220px, var(--bg) 220px 100%);
+  /* ✨ updated gradient background */
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 40%, #06b6d4 100%);
   display: flex;
   justify-content: center;     /* center horizontally */
   align-items: center;         /* center vertically */
@@ -237,6 +238,7 @@ function onScroll() {
 
 /* left form pane: vertically centered content */
 .form-pane {
+  background-color: white;
   padding: 40px 48px;
   display: grid;
   align-content: center;          /* <-- vertical centering of the whole form area */

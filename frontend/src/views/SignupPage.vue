@@ -238,7 +238,6 @@ function handleSubmit() {
 </script>
 
 <style scoped>
-/* tokens (keep consistent with LoginPage.vue) */
 :root {
   --blue: #3b6cff;
   --blue-600: #2f5af0;
@@ -253,16 +252,17 @@ function handleSubmit() {
 
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--blue) 0 220px, var(--bg) 220px 100%);
+  /* ✨ updated gradient background */
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 40%, #06b6d4 100%);
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 24px;
+  justify-content: center;     /* center horizontally */
+  align-items: center;         /* center vertically */
+  padding: 24px;               /* small breathing room around */
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   color: var(--ink);
 }
 
-.top-strip { height: 0; }
+.top-strip { height: 0; } /* visual handled by body gradient */
 
 .card {
   width: min(1040px, 92vw);
@@ -367,6 +367,7 @@ function handleSubmit() {
 
 /* form (right) */
 .form-pane {
+  background-color: white;
   padding: 40px 48px;
   display: grid;
   align-content: center;
