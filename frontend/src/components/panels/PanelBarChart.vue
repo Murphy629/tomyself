@@ -5,7 +5,7 @@
       :panelId="2"
       slug="dashboardtest"
       :orgId="1"
-      :base="'http://127.0.0.1:5000'"
+      :base="grafanaBase"
       theme="light"
       :debug="true"
     />
@@ -14,4 +14,6 @@
 
 <script setup lang="ts">
 import GrafanaFrame from './GrafanaFrame.vue'
+const grafanaBase = '/grafana'
+
 </script>

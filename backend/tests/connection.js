@@ -70,6 +70,13 @@ router.get('/influx-status', async (_req, res) => {
 });
 
 router.post('/influx-write-test', async (_req, res) => {
+  console.log('[influx] write config', {
+    url: process.env.INFLUX_URL || process.env.INFLUXDB_URL,
+    org: process.env.INFLUXDB_ORG || process.env.INFLUX_ORG,
+    bucket: process.env.INFLUXDB_BUCKET || process.env.INFLUX_BUCKET,
+    hasToken: Boolean(process.env.INFLUXDB_TOKEN || process.env.INFLUX_TOKEN),
+  });
+  
   try {
     if (!writeApi) {
       return res.status(400).json({

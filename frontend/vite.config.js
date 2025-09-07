@@ -35,13 +35,22 @@ export default defineConfig(({ mode }) => {
         // If you want the SPA to use /grafana, set in Grafana:
         //   server.serve_from_sub_path = true
         //   server.root_url = %(protocol)s://%(domain)s:%(http_port)s/grafana/
+
+
+        // '/grafana': {
+        //   target: `http://${GRAFANA_HOST}:${GRAFANA_PORT}`,
+        //   changeOrigin: true,
+        //   secure: false,
+        //   ws: true,
+        //   // rewrite: p => p.replace(/^\/grafana/, ''),
+        // },
+
         '/grafana': {
-          target: `http://${GRAFANA_HOST}:${GRAFANA_PORT}`,
+          target: 'http://localhost:5000', // Grafana backend
           changeOrigin: true,
-          secure: false,
-          ws: true,
-          rewrite: p => p.replace(/^\/grafana/, ''),
-        },
+          rewrite: (p) => p.replace(/^\/grafana/, '')
+        }
+
       },
     },
     build: {
