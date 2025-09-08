@@ -7,7 +7,6 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env'), override: true
 // console.log('Influx Bucket:', process.env.INFLUXDB_BUCKET);
 // console.log('Influx Token:', process.env.INFLUXDB_TOKEN);
 
-
 var createError = require('http-errors');
 var express = require('express');
 var cookieParser = require('cookie-parser');
@@ -18,7 +17,13 @@ var usersRouter = require('./routes/users');
 var apiRouter = require('./routes/api');
 var testConnectionRouter = require('./tests/connection');
 
+// ✅ 新增：引入 auth 路由
+var authRouter = require('./routes/auth');
+
 var app = express();
+
+// 代理后获取真实客户端 IP
+app.set('trust proxy', 1);
 
 app.use(logger('dev'));
 app.use(express.json({ limit: '1mb' }));
@@ -63,12 +68,12 @@ app.use(
 // quick health
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-// routes
+// routes（注意顺序：/api/auth 要在 /api 之前）
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/api/auth', authRouter);   // ✅ 先挂载 auth
 app.use('/api', apiRouter);
 app.use('/test-connection', testConnectionRouter);
-
 
 // catch 404 and error handler (left as generated)
 app.use(function(req, res, next) { next(createError(404)); });
@@ -80,3 +85,4 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
