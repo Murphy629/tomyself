@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
+const rateLimit = require('express-rate-limit'); // 限流
 const SC = require('../auth/statusCodes');
 const { recordLoginEvent } = require('../services/audit');
 
-// ========== 简单锁定策略（内存版） ==========
+// ========== 简单锁定策略（内存版）可调整 ==========
 const MAX_ATTEMPTS = 5;           // 连续失败阈值
 const WINDOW_MINUTES = 15;        // 统计窗口（分钟）
 const LOCK_MINUTES = 15;          // 锁定时长（分钟）
@@ -12,7 +13,7 @@ const LOCK_MINUTES = 15;          // 锁定时长（分钟）
 const WINDOW_MS = WINDOW_MINUTES * 60 * 1000;
 const LOCK_MS = LOCK_MINUTES * 60 * 1000;
 
-// 记失败/锁定的内存表（进程重启会清零，联调前后端）
+// 记失败/锁定的内存表（进程重启会清零，够联调前后端）
 const attempts = new Map(); // key -> { count, firstTs, lockedUntil }
 
 // 小工具：生成 traceId（仅限本文件使用）
@@ -76,26 +77,47 @@ function resetAttempts(key) {
 function noteFailure(key) {
   const now = Date.now();
   let rec = attempts.get(key);
-  if (!rec) {
-    rec = { count: 0, firstTs: now, lockedUntil: null };
-  }
-  // 窗口外，重置
-  if (now - rec.firstTs > WINDOW_MS) {
-    rec = { count: 0, firstTs: now, lockedUntil: null };
-  }
+  if (!rec) rec = { count: 0, firstTs: now, lockedUntil: null };
+  if (now - rec.firstTs > WINDOW_MS) rec = { count: 0, firstTs: now, lockedUntil: null };
   rec.count += 1;
-  // 触发锁定
   if (rec.count >= MAX_ATTEMPTS) {
     rec.lockedUntil = now + LOCK_MS;
-    rec.count = 0; // 重置计数，等待解锁
+    rec.count = 0;
     rec.firstTs = now;
   }
   attempts.set(key, rec);
   return rec.lockedUntil || null;
 }
 
+// 登录接口限流（演示用 10 秒内最多 3 次）
+const loginLimiter = rateLimit({
+  windowMs: 10 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res /*, next*/) => {
+    // 429 时也记录一次审计
+    recordLoginEvent({
+      req,
+      usernameInput: (req.body && req.body.email) || '',
+      userId: null,
+      code: SC.AuthCodes.TOO_MANY_ATTEMPTS,
+      success: false,
+      serverReason: 'rate limit exceeded'
+    });
+    return respondFail(
+      res,
+      SC.AuthCodes.TOO_MANY_ATTEMPTS,
+      undefined,
+      {},
+      429,
+      'Too many attempts. Please wait a moment.'
+    );
+  },
+});
+
 // ----------- 登录路由 -----------
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body || {};
     const usernameInput = email || '';
@@ -113,7 +135,7 @@ router.post('/login', async (req, res) => {
         res,
         SC.AuthCodes.ACCOUNT_LOCKED,
         undefined,
-        { lockedUntil },     // ⬅️ 返回给前端做倒计时
+        { lockedUntil },
         403,
         'Too many attempts. Try again later.'
       );
@@ -126,7 +148,6 @@ router.post('/login', async (req, res) => {
         code: SC.AuthCodes.INVALID_CREDENTIALS, success: false,
         serverReason: 'missing email or password'
       });
-      // 记一次失败，但通常缺字段不计入锁定；你也可以选择计入
       return respondFail(
         res,
         SC.AuthCodes.INVALID_CREDENTIALS,
@@ -137,13 +158,13 @@ router.post('/login', async (req, res) => {
       );
     }
 
-    // C) 演示账号
+    // C) 演示账号（只为打通链路）
     const DEMO_EMAIL = process.env.DEMO_USER_EMAIL || 'demo@example.com';
     const DEMO_PASS  = process.env.DEMO_USER_PASSWORD || 'demo123';
 
     // D) 校验失败 → 计数/可能触发锁定
     if (email !== DEMO_EMAIL || password !== DEMO_PASS) {
-      const lockedUntil = noteFailure(key); // ⬅️ 记录失败
+      const lockedUntil = noteFailure(key);
       const code = lockedUntil ? SC.AuthCodes.ACCOUNT_LOCKED : SC.AuthCodes.INVALID_CREDENTIALS;
 
       await recordLoginEvent({
