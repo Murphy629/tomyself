@@ -70,3 +70,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+
+# Start all services in the background
+# docker compose up -d
+
+# Stop all services and remove containers, networks
+# docker compose down
+
+# Stop services but keep containers (can restart later)
+# docker compose stop
+
+# Start services again after stop
+# docker compose start
