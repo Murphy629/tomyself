@@ -19,7 +19,7 @@ services:
       - ./mysql/mysql-config:/etc/mysql/conf.d
       # Logs (optional)
       - ./mysql/mysql-logs:/var/log/mysql
-  grafana:
+  grafana: # permission required to start the service: sudo chown -R 472:472 ./grafana/grafana-data ./grafana/grafana-logs ./grafana/grafana-config
     image: grafana/grafana-oss:9.5.3
     container_name: grafana
     ports:
