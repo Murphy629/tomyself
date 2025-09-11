@@ -1,0 +1,2 @@
+user default off
+user session on >a0009de9a9d0e0871c96833db7d25ee2107e5c976e23aa0fe36e12c58586c900 ~app:sess:* +get +set +del +unlink +expire +pexpire +ttl +pttl +exists +scan +select +ping

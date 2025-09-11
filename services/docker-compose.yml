@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "sadfUBD&*12389e4ysdf"
+      MYSQL_DATABASE: "sepdb"
+      MYSQL_USER: "sep"
+      MYSQL_PASSWORD: "ailuf123iuwen7riuns"
+    ports:
+      - "3306:3306"
+    volumes:
+      # Persist data
+      - ./mysql/mysql-data:/var/lib/mysql
+      # Custom configs (place your cnf files here)
+      - ./mysql/mysql-config:/etc/mysql/conf.d
+      # Logs (optional)
+      - ./mysql/mysql-logs:/var/log/mysql
+  grafana:
+    image: grafana/grafana-oss:9.5.3
+    container_name: grafana
+    ports:
+      - "5000:3000"   # host:container
+    volumes:
+      - ./grafana/grafana-data:/var/lib/grafana
+      - ./grafana/grafana-logs:/var/log/grafana
+      - ./grafana/grafana-config:/etc/grafana
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SERVER_ROOT_URL=http://localhost:5173/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    restart: unless-stopped
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb/influxdb-data:/var/lib/influxdb2
+      - ./influxdb/influxdb-config:/etc/influxdb2
+      - ./influxdb/influxdb-logs:/var/log/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=SuperSecret123
+      - DOCKER_INFLUXDB_INIT_ORG=my-org
+      - DOCKER_INFLUXDB_INIT_BUCKET=default
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=SuperAdminToken123
+    restart: unless-stopped
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis/redis-config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/redis-config/users.acl:/usr/local/etc/redis/users.acl:ro
+      - ./redis/redis-data:/data
+      - ./redis/redis-logs:/var/log/redis
+      - ./redis/redis-backup:/backup
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
