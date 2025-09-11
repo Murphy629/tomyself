@@ -1,0 +1,103 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "iousdafYUAG120894a12"
+      MYSQL_DATABASE: "sepdb"
+      MYSQL_USER: "sep"
+      MYSQL_PASSWORD: "Usd0923dsfjnk871223"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/mysql-data:/var/lib/mysql
+      - ./mysql/mysql-config:/etc/mysql/conf.d
+      - ./mysql/mysql-logs:/var/log/mysql
+    networks:
+      - app_network
+
+  grafana:
+    image: grafana/grafana-oss:9.5.3
+    container_name: grafana
+    ports:
+      - "5000:3000"
+    volumes:
+      - ./grafana/grafana-data:/var/lib/grafana
+      - ./grafana/grafana-logs:/var/log/grafana
+      - ./grafana/grafana-config:/etc/grafana
+    environment:
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_SERVER_ROOT_URL: "http://localhost:5173/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb/influxdb-data:/var/lib/influxdb2
+      - ./influxdb/influxdb-config:/etc/influxdb2
+      - ./influxdb/influxdb-logs:/var/log/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=UDFno23nr12309asdf
+      - DOCKER_INFLUXDB_INIT_ORG=my-org
+      - DOCKER_INFLUXDB_INIT_BUCKET=default
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=IUFE324jsdf23oijasdf
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis/redis-config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/redis-config/users.acl:/usr/local/etc/redis/users.acl:ro
+      - ./redis/redis-data:/data
+      - ./redis/redis-logs:/var/log/redis
+      - ./redis/redis-backup:/backup
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+# Define the custom network
+networks:
+  app_network:
+    driver: bridge
+
+
+# Start all services in the background
+# docker compose up -d
+
+# Stop all services and remove containers, networks
+# docker compose down
+
+# Stop services but keep containers (can restart later)
+# docker compose stop
+
+# Start services again after stop
+# docker compose start
+
+
+# Network
+# Inside this network, services can talk to each other using their container names 
+# (e.g., Grafana can reach InfluxDB via http://influxdb:8086 instead of localhost:8086).
