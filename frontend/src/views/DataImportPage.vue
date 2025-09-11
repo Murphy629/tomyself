@@ -1,9 +1,5 @@
 <template>
-  <!-- <MenuBar /> -->
-  <!-- <ServiceStatus /> -->
-  <DefaultLayout1 />
-  <QueryBuilderPage/>
-  <AllGrafanaComponents />
+    <h1>Data Import Page</h1>
 </template>
 
 <script setup>
@@ -15,6 +11,6 @@ import QueryBuilderPage from './QueryBuilderPage.vue'
 
 import { onMounted } from 'vue'
 onMounted(() => {
-  document.title = 'BetterInflux - Simple & Elegant'
+  document.title = 'BetterInflux - Data Import'
 })
 </script>
