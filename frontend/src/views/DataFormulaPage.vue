@@ -1,9 +1,6 @@
 <template>
-  <!-- <MenuBar /> -->
-  <!-- <ServiceStatus /> -->
-  <DefaultLayout1 />
-  <QueryBuilderPage/>
-  <AllGrafanaComponents />
+    <h1>Data Formula Page</h1>
+    <p>This is the data formula page content.</p>
 </template>
 
 <script setup>
@@ -15,6 +12,6 @@ import QueryBuilderPage from './QueryBuilderPage.vue'
 
 import { onMounted } from 'vue'
 onMounted(() => {
-  document.title = 'BetterInflux - Simple & Elegant'
+  document.title = 'BetterInflux - Data Formula'
 })
 </script>

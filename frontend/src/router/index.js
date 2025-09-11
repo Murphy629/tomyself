@@ -27,6 +27,41 @@ const routes = [
     path: '/initialization',
     name: 'Initialization',
     component: () => import('../views/InitializationPage.vue')
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('../views/AboutPage.vue')
+  },
+  {
+    path: '/organizer',
+    name: 'Organizer',
+    component: () => import('../views/OrganizerPage.vue')
+  },
+  {
+    path: '/data-formula',
+    name: 'DataFormula',
+    component: () => import('../views/DataFormulaPage.vue')
+  },
+  {
+    path: '/data-import',
+    name: 'DataImport',
+    component: () => import('../views/DataImportPage.vue')
+  },
+  {
+    path: '/diagnostics',
+    name: 'Diagnostics',
+    component: () => import('../views/DiagnosisPage.vue')
+  },
+  {
+    path: '/panel-editor',
+    name: 'PanelEditor',
+    component: () => import('../views/PanelEditor.vue')
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../views/SettingPage.vue')
   }
 ]
 
