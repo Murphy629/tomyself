@@ -29,11 +29,11 @@ services:
       - ./grafana/grafana-logs:/var/log/grafana
       - ./grafana/grafana-config:/etc/grafana
     environment:
-      - GF_SECURITY_ALLOW_EMBEDDING=true
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-      - GF_SERVER_ROOT_URL=http://localhost:5173/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_SERVER_ROOT_URL: "http://localhost:5173/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     restart: unless-stopped
   influxdb:
     image: influxdb:2.7
