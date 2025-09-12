@@ -1,5 +1,6 @@
 <!-- src/views/LoginPage.vue -->
 <template>
+  <MenuBar />
   <div class="login-page">
     <!-- top blue strip -->
     <div class="top-strip" aria-hidden="true"></div>
@@ -149,6 +150,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, onMounted, onBeforeUnmount } from 'vue'
+import MenuBar from '../components/MenuBar.vue';
 
 onMounted(() => {
   document.title = "Login - BetterInflux";
