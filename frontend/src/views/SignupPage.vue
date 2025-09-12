@@ -1,5 +1,6 @@
 <!-- src/views/SignupPage.vue -->
 <template>
+  <MenuBar />
   <div class="login-page">
     <div class="top-strip" aria-hidden="true"></div>
 
@@ -171,6 +172,7 @@
             Already have an account?
             <router-link class="link" to="/login">Login</router-link>
           </p>
+          
         </form>
       </section>
     </div>
@@ -179,6 +181,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, onMounted, onBeforeUnmount } from 'vue'
+import MenuBar from '../components/MenuBar.vue';
 
 onMounted(() => {
   document.title = "Sign Up - BetterInflux";
