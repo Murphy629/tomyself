@@ -104,4 +104,28 @@ const topH = computed(() =>
   clip: rect(0 0 0 0); clip-path: inset(50%);
   overflow: hidden;
 }
+
+
+.dark .card-skeleton {
+  background: #181a1d;               /* deep slate tile */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  color: #e5e7eb;
+}
+/* Dark shimmer tones: slightly lighter band sweeping over darker base */
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    #1f2937 25%,   /* slate-800 base */
+    #374151 37%,   /* slate-700 highlight */
+    #1f2937 63%
+  );
+  background-size: 400% 100%;
+}
+.dark .skeleton.block.top {
+  /* keep same radius and height; no change needed */
+}
+.dark .skeleton.line {
+  /* maintain height; only tones differ */
+}
+/* Optional: adjust subtle borders if you later add any */
 </style>
