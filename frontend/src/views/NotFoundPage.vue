@@ -20,7 +20,7 @@ import { RouterLink } from 'vue-router'
   justify-content: center;
   align-items: center;
   text-align: center;
-  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  /* background: linear-gradient(135deg, #dbeafe, #eff6ff); */
 }
 
 h1 {
@@ -49,4 +49,27 @@ p {
 .btn:hover {
   background: #2563eb;
 }
+
+/* ===== Dark Mode ===== */
+.dark .notfound {
+  /* background: #0f172a; */
+}
+
+.dark h1 {
+  color: #60a5fa; /* blue-400 */
+}
+
+.dark p {
+  color: #e5e7eb;
+}
+
+.dark .btn {
+  background: #2563eb;
+  color: #e5e7eb;
+}
+
+.dark .btn:hover {
+  background: #1d4ed8;
+}
+
 </style>

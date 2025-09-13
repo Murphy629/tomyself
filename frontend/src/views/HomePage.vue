@@ -7,7 +7,7 @@
 
     <div class="fade-slide appear" style="--d: 60ms">
       <DefaultLayout1 />
-      <QueryBuilderPage />
+      <!-- <QueryBuilderPage /> -->
       <!-- <AllGrafanaComponents /> -->
     </div>
   </div>

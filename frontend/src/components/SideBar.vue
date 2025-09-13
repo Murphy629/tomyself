@@ -47,8 +47,11 @@
           </div>
         </div>
 
-        <div class="theme-selector">
-          <ThemeSwitch v-model="theme" :size="'sm'" @change="onThemeChange" />
+        <div class="theme-selector" v-if="!collapsed">
+          <ThemeSwitch v-model="theme" :size="'sm'" @change="setTheme" />
+        </div>
+        <div class="theme-mini" v-else>
+          <ThemeSwitchMini v-model="theme" @change="setTheme" />
         </div>
 
         <br>
@@ -81,41 +84,10 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import ThemeSwitch from './ThemeSwitch.vue'
+import ThemeSwitchMini from './ThemeSwitchMini.vue'
+import { useTheme } from '../composables/useTheme.js'
 
-// Theme handling
-const THEME_KEY = 'bi.theme.mode'
-const theme = ref('adaptive') // 'light' | 'dark' | 'adaptive'
-
-// Track system preference for 'adaptive' mode
-const SYSTEM_MQ = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null
-const systemPrefersDark = ref(SYSTEM_MQ ? SYSTEM_MQ.matches : false)
-if (SYSTEM_MQ) {
-  const handler = (e) => { systemPrefersDark.value = e.matches }
-  try { SYSTEM_MQ.addEventListener ? SYSTEM_MQ.addEventListener('change', handler) : SYSTEM_MQ.addListener(handler) } catch {}
-}
-
-const isDark = computed(() => theme.value === 'dark' || (theme.value === 'adaptive' && systemPrefersDark.value))
-
-function applyTheme() {
-  // Persist and expose to document for potential global use
-  try { localStorage.setItem(THEME_KEY, theme.value) } catch {}
-  const root = document.documentElement
-  if (root) {
-    // convenience attribute other parts can use
-    root.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
-  }
-}
-
-const onThemeChange = () => { applyTheme() }
-
-// Initialize from storage on mount
-onMounted(() => {
-  try {
-    const saved = localStorage.getItem(THEME_KEY)
-    if (saved === 'light' || saved === 'dark' || saved === 'adaptive') theme.value = saved
-  } catch {}
-  applyTheme()
-})
+const { theme, isDark, setTheme } = useTheme()
 
 const route = useRoute()
 
@@ -248,6 +220,14 @@ const onMouseMove = (e) => {
   justify-content: center;
   align-items: center;
   box-sizing: border-box;   /* ensure padding doesn't overflow */
+}
+.theme-mini {
+  margin-top: 8px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 0;
 }
 .user-card { flex:0 0 auto; display:flex; align-items:center; gap:12px; margin-top:auto; padding:12px; background: rgba(47,111,237,0.12); border:1px solid var(--border); border-radius:14px; }
 .sidebar.dark .user-card { background: rgba(138,180,255,0.12); }

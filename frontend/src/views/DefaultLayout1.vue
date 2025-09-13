@@ -26,6 +26,10 @@ h1 {
   color: #333;
 }
 
+.dark h1 {
+  color: #f1f5f9;
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

@@ -1,4 +1,3 @@
-<!-- src/views/SignupPage.vue -->
 <template>
   <MenuBar />
   <div class="login-page">
@@ -256,7 +255,7 @@ function handleSubmit() {
 .login-page {
   min-height: 100vh;
   /* ✨ updated gradient background */
-  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 40%, #06b6d4 100%);
+  background: linear-gradient(135deg, #5b54eb 0%, #f6b23b 0%, #43bfd4 100%);
   display: flex;
   justify-content: center;     /* center horizontally */
   align-items: center;         /* center vertically */
@@ -363,6 +362,7 @@ function handleSubmit() {
   transition: background 0.2s, transform 0.2s;
 }
 .dot.active {
+  background: #1d4ed8;
   transform: scale(1.3);
   /* background: #1d4ed8;  */
   /* match login button hue */
@@ -454,5 +454,114 @@ input:focus {
   }
   .slide { padding: 0 24px; }
   .pager { padding: 0 24px; }
+}
+
+/* =========================
+   Dark Mode (global `.dark`)
+   ========================= */
+.dark .login-page {
+  /* deep, calm gradient matching Login dark */
+  background: linear-gradient(135deg, #391a78 0%, #af5e20 0%, #0f4170 100%);
+  color: #e5e7eb;
+}
+
+.dark .card {
+  background: #0f172a;
+  border-color: #1f2937;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+}
+
+.dark .form-pane {
+  background-color: #070a0f;
+}
+
+.dark .title {
+  color: #e5e7eb;
+}
+
+.dark .label {
+  color: #9ca3af;
+}
+
+.dark input[type="text"],
+.dark input[type="email"],
+.dark .password-wrap > input {
+  background: #0b1220;
+  color: #e5e7eb;
+  border-color: #1f2937;
+}
+
+.dark input::placeholder,
+.dark .password-wrap > input::placeholder {
+  color: #94a3b8; /* slate-400 */
+}
+
+.dark input:focus,
+.dark .password-wrap > input:focus {
+  border-color: #60a5fa; /* blue-400 */
+  box-shadow: 0 0 0 3px rgba(96,165,250,0.25);
+  outline: none;
+}
+
+.dark .password-wrap .toggle {
+  background: #111827;
+  color: #cbd5e1;
+}
+
+.dark .password-wrap .toggle:hover {
+  background: #1f2937;
+}
+
+.dark .remember {
+  color: #e5e7eb;
+}
+
+.dark .link {
+  color: #60a5fa;
+}
+
+.dark .submit {
+  background: #2563eb; /* blue-600 */
+  color: #e5e7eb;
+}
+.dark .submit:hover {
+  background: #1d4ed8; /* blue-700 */
+}
+
+.dark .minor {
+  color: #9ca3af;
+}
+
+/* Left promo pane (Signup has border-right) */
+.dark .promo-pane {
+  background: #0b1220;
+  border-right-color: #1f2937;
+}
+
+.dark .promo-pane h2 {
+  color: #e5e7eb;
+}
+
+.dark .promo-pane p {
+  color: #cbd5e1;
+}
+
+.dark .illust {
+  background: #0f172a;
+  border-color: #1f2937;
+}
+
+.dark .tile {
+  background: #111827;
+}
+
+.dark .bar { background: #60a5fa; } /* keep nice contrast in dark */
+
+/* Carousel dots */
+.dark .dot {
+  background: #334155; /* slate-600 */
+}
+.dark .dot.active {
+  background: #60a5fa; /* blue-400 to indicate active */
 }
 </style>

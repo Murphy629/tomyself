@@ -18,12 +18,14 @@
 import SideBar from './components/SideBar.vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useTheme } from './composables/useTheme.js'
+useTheme()
 
 const route = useRoute()
 
 // Show sidebar on all pages except login/signup
 const showSidebar = computed(() => {
-  return route.path !== '/login' && route.path !== '/signup'
+  return route.path !== '/login' && route.path !== '/signup' && route.path !== '/initialization'
 })
 </script>
 
@@ -49,6 +51,11 @@ body {
   padding: 16px;
 }
 
+
+.dark .content {
+  background: #181f2a;
+  color: #f1f5f9;
+}
 
 
 .sidebar-wrapper {

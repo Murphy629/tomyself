@@ -196,4 +196,98 @@ function pretty(obj) { try { return JSON.stringify(obj, null, 2); } catch { retu
 .grafana-link { margin-top: 4px; }
 .grafana-link a { color: #1976d2; text-decoration: none; }
 .grafana-link a:hover { text-decoration: underline; }
+
+/* ===== Dark Mode (global .dark on <html> or <body>) ===== */
+.dark .status-container {
+  background: #0f172a;           /* slate-900-ish */
+  color: #e5e7eb;                /* text */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+}
+
+.dark .title {
+  color: #e5e7eb;
+}
+
+.dark .status-table {
+  color: #e5e7eb;
+}
+
+.dark .status-table thead {
+  background: #111827;           /* slate-900/800 */
+}
+
+.dark .status-table th,
+.dark .status-table td {
+  border-bottom: 1px solid #1f2937; /* slate-800 */
+}
+
+.dark .status-table tr:hover td {
+  background: #0b1220;           /* subtle hover */
+}
+
+.dark .status {
+  /* keep font-weight; colors per state below */
+}
+
+.dark .status.success {
+  background: rgba(16,185,129,0.12); /* emerald tint */
+  color: #34d399;
+}
+
+.dark .status.failure {
+  background: rgba(239,68,68,0.12);  /* red tint */
+  color: #f87171;
+}
+
+.dark .status.checking {
+  background: rgba(234,179,8,0.12);  /* amber tint */
+  color: #fbbf24;
+}
+
+.dark .refresh-btn {
+  background: #2563eb;               /* blue-600 */
+  color: #e5e7eb;
+}
+
+.dark .refresh-btn:hover {
+  background: #1d4ed8;               /* blue-700 */
+}
+
+.dark .small-btn {
+  background: #111827;               /* tile bg */
+  border-color: #374151;             /* slate-700 */
+  color: #e5e7eb;
+}
+
+.dark .small-btn:disabled {
+  opacity: 0.6;
+}
+
+.dark .details-cell {
+  background: #0b1220;
+}
+
+.dark .pre-json {
+  background: #0f172a;
+  border-color: #1f2937;
+  color: #e5e7eb;
+}
+
+.dark .pre-json.error {
+  background: #17111a;               /* muted dark red-ish */
+  border-color: #5b1f28;
+  color: #fca5a5;
+}
+
+.dark .muted {
+  color: #9ca3af;
+}
+
+.dark .grafana-link a {
+  color: #60a5fa;                    /* blue-400 */
+}
+
+.dark .grafana-link a:hover {
+  text-decoration: underline;
+}
 </style>
