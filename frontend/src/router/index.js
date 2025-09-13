@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../views/LoginPage.vue'
 import HomePage from '../views/HomePage.vue'
+import IntroPage from '../views/ IntroPage.vue'
+import NotFoundPage from '../views/NotFoundPage.vue'
 
 const routes = [
   {
@@ -21,8 +23,8 @@ const routes = [
   {
     path: '/:catchAll(.*)',
     name: 'NotFound',
-    component: HomePage
-  }, // need to be modified
+    component: NotFoundPage
+  },
   {
     path: '/initialization',
     name: 'Initialization',
@@ -67,6 +69,11 @@ const routes = [
     path: '/admin-panel',
     name: 'AdminPanel',
     component: () => import('../views/AdminPanel.vue')
+  },
+  {
+    path: '/intro',
+    name: 'Intro',
+    component: IntroPage
   }
 ]
 

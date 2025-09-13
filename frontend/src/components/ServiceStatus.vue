@@ -8,6 +8,8 @@
           <th>Service</th>
           <th>Port</th>
           <th>Status</th>
+          <th>Latency</th>
+          <th>Details</th>
         </tr>
       </thead>
       <tbody>
@@ -18,6 +20,27 @@
             <span v-if="s.ok" class="status success">✅ success</span>
             <span v-else-if="s.ok === false" class="status failure">❌ failure</span>
             <span v-else class="status checking">…checking</span>
+          </td>
+          <td>
+            <span v-if="s.timeMs != null">{{ s.timeMs }} ms</span>
+            <span v-else>—</span>
+          </td>
+          <td>
+            <button class="small-btn" @click="toggleDetails(s)" :disabled="s.ok == null && !s.error">
+              {{ isExpanded(s) ? 'Hide' : 'Show' }}
+            </button>
+          </td>
+        </tr>
+
+        <!-- Expanded details row -->
+        <tr v-for="s in services" :key="s.key + '-details'" v-show="expanded.has(s.key)">
+          <td colspan="5" class="details-cell">
+            <div v-if="s.key === 'grafana' && s.data?.baseUrl" class="grafana-link">
+              <a :href="s.data.baseUrl" target="_blank" rel="noopener noreferrer">Open Grafana ({{ s.data.baseUrl }})</a>
+            </div>
+            <pre class="pre-json" v-if="s.data">{{ pretty(s.data) }}</pre>
+            <pre class="pre-json error" v-else-if="s.error">{{ s.error }}</pre>
+            <span v-else class="muted">No details</span>
           </td>
         </tr>
       </tbody>
@@ -34,31 +57,46 @@ import { reactive, onMounted } from 'vue';
 const BASE = '/backend/test-connection';
 
 const services = reactive([
-  { key: 'backend', label: 'Backend', path: '/backend-status', ok: null, port: null },
-  { key: 'mysql', label: 'MySQL', path: '/mysql-status', ok: null, port: null },
-  { key: 'influx', label: 'InfluxDB', path: '/influx-status', ok: null, port: null },
-  { key: 'influxWrite', label: 'InfluxDB Write', path: '/influx-write-test', ok: null, port: null, method: 'POST' },
-  { key: 'grafana', label: 'Grafana', path: '/grafana-status', ok: null, port: null },
+  { key: 'backend',     label: 'Backend',         path: '/backend-status',       ok: null, port: null, data: null, error: null, timeMs: null },
+  { key: 'mysql',       label: 'MySQL',           path: '/mysql-status',         ok: null, port: null, data: null, error: null, timeMs: null },
+  { key: 'influx',      label: 'InfluxDB',        path: '/influx-status',        ok: null, port: null, data: null, error: null, timeMs: null },
+  { key: 'influxWrite', label: 'InfluxDB Write',  path: '/influx-write-test',    ok: null, port: null, data: null, error: null, timeMs: null, method: 'POST' },
+  { key: 'grafana',     label: 'Grafana',         path: '/grafana-status',       ok: null, port: null, data: null, error: null, timeMs: null },
 ]);
 
 async function checkOne(s) {
   try {
+    const start = performance.now();
     const res = await fetch(BASE + s.path, { method: s.method || 'GET' });
     const data = await res.json();
+    s.timeMs = Math.max(0, Math.round(performance.now() - start));
     s.ok = res.ok && data.status;
     s.port = data.port ?? null;
-  } catch {
+    s.data = data;
+    s.error = null;
+  } catch (e) {
     s.ok = false;
     s.port = null;
+    s.data = null;
+    s.timeMs = null;
+    s.error = e?.message || String(e);
   }
 }
 
 async function checkAll() {
-  services.forEach(s => { s.ok = null; s.port = null; });
+  services.forEach(s => { s.ok = null; s.port = null; s.data = null; s.error = null; s.timeMs = null; });
   await Promise.all(services.map(s => checkOne(s)));
 }
 
 onMounted(checkAll);
+
+// Expand/collapse details handling
+const expanded = reactive(new Set());
+function toggleDetails(s) {
+  if (expanded.has(s.key)) expanded.delete(s.key); else expanded.add(s.key);
+}
+function isExpanded(s) { return expanded.has(s.key); }
+function pretty(obj) { try { return JSON.stringify(obj, null, 2); } catch { return String(obj); } }
 </script>
 
 <style scoped>
@@ -139,4 +177,23 @@ onMounted(checkAll);
 .refresh-btn:hover {
   background: #1565c0;
 }
+
+.small-btn {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.small-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.details-cell { background: #fcfcff; }
+.pre-json { margin: 0.5rem 0; padding: 0.75rem; background: #f6f8fa; border: 1px solid #eee; border-radius: 8px; max-height: 320px; overflow: auto; }
+.pre-json.error { background: #fff5f5; border-color: #ffd5d5; color: #8b0000; }
+.muted { color: #8a8a8a; }
+.grafana-link { margin-top: 4px; }
+.grafana-link a { color: #1976d2; text-decoration: none; }
+.grafana-link a:hover { text-decoration: underline; }
 </style>

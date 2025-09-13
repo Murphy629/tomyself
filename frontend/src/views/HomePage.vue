@@ -1,9 +1,14 @@
 <template>
   <div class="page">
+
+    <h1>Welcome back to BetterInflux - {user name}</h1>
+    <Summary></Summary>
+
+
     <div class="fade-slide appear" style="--d: 60ms">
       <DefaultLayout1 />
       <QueryBuilderPage />
-      <AllGrafanaComponents />
+      <!-- <AllGrafanaComponents /> -->
     </div>
   </div>
 </template>
@@ -14,6 +19,7 @@ import ServiceStatus from '../components/ServiceStatus.vue'
 import AllGrafanaComponents from './AllGrafanaComponents.vue'
 import DefaultLayout1 from './DefaultLayout1.vue'
 import QueryBuilderPage from './QueryBuilderPage.vue'
+import Summary from '../components/Summary.vue'
 
 import { onMounted } from 'vue'
 onMounted(() => {
