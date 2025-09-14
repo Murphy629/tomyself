@@ -25,8 +25,7 @@ async function findUserByEmail(email) {
       |> keep(columns: ["email","username","password_hash","email_verified"])
       |> limit(n: 1)
   `;
-  const rows = [];
-  await queryUsers.collectRows(flux, rows);
+  const rows = await queryUsers.collectRows(flux);
   if (rows.length === 0) return null;
   const r = rows[0];
   const obj = {
@@ -76,8 +75,7 @@ async function getVerifyTokenMeta(hashedToken) {
       |> limit(n:1)
       |> keep(columns:["email"])
   `;
-  const rows = [];
-  await queryTokens.collectRows(q1, rows);
+  const rows = await queryTokens.collectRows(q1);
   if (rows.length === 0) return null;
   const email = rows[0].email;
 
@@ -91,8 +89,7 @@ async function getVerifyTokenMeta(hashedToken) {
       |> keep(columns:["expires_at","used"])
       |> limit(n:1)
   `;
-  const metaRows = [];
-  await queryTokens.collectRows(q2, metaRows);
+  const metaRows = await queryTokens.collectRows(q2);
   if (metaRows.length === 0) return { email, expiresAt: 0, used: false };
 
   const m = metaRows[0];
@@ -103,7 +100,7 @@ async function getVerifyTokenMeta(hashedToken) {
 
 async function verifyEmail(rawToken) {
   const tokenHash = sha256(rawToken);
-  const meta = await getVerifyMeta(tokenHash);
+  const meta = await getVerifyTokenMeta(tokenHash);
   if (!meta) return { ok: false, code: "TOKEN_INVALID" };
   if (meta.used) return { ok: false, code: "TOKEN_USED" };
   if (Date.now() > meta.expiresAt) return { ok: false, code: "TOKEN_EXPIRED" };
