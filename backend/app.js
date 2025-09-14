@@ -1,12 +1,10 @@
 var path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieSession = require('cookie-session');
+const crypto = require('crypto');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 require('dotenv').config({ path: path.resolve(__dirname, '.env'), override: true });
-
-var session = require('express-session');
-var Redis = require('ioredis');
-var RedisStore = require('connect-redis').default;
 
 var createError = require('http-errors');
 var express = require('express');
@@ -54,74 +52,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // fast preflight
 
-// ----- Redis client (sessions) -----
-const redisOptions = {
-  host: process.env.REDIS_HOST || '127.0.0.1',
-  port: Number(process.env.REDIS_PORT || 6379),
-  username: process.env.REDIS_USERNAME || undefined,
-  password: process.env.REDIS_PASSWORD || undefined,
-  db: Number(process.env.REDIS_DB || 0),
-  keyPrefix: process.env.REDIS_KEY_PREFIX || 'app:sess:',
-  enableOfflineQueue: true,
-  maxRetriesPerRequest: null,
-  lazyConnect: true,
-  keepAlive: 1,
-  noDelay: true,
-  connectTimeout: 10000,
-  connectionName: 'app-session',
-  retryStrategy(times) {
-    // back off up to 2s
-    return Math.min(times * 200, 2000);
-  },
-  reconnectOnError(err) {
-    const code = err?.code ? String(err.code) : '';
-    const msg  = err?.message ? String(err.message) : '';
-    // Reconnect only for transport/replica issues; avoid loops on ACL/app errors
-    if (code === 'ECONNRESET' || code === 'ETIMEDOUT' || code === 'EPIPE') return true;
-    if (msg.includes('READONLY')) return true; // replica state change
-    return false;
-  }
-};
-if (String(process.env.REDIS_TLS_ENABLED || 'false') === 'true') {
-  redisOptions.tls = {};
-}
-const redisClient = new Redis(redisOptions);
-app.locals.redis = redisClient;
-redisClient.on('error', (err) => {
-  console.error(
-    '[redis] error:',
-    err?.message,
-    'cmd=',
-    err?.command?.name || '-',
-    'code=',
-    err?.code || '-'
-  );
-});
-redisClient.on('connect', () => {
-  console.log('[redis] connected');
-});
-
-redisClient.on('ready', () => {
-  console.log('[redis] ready');
-});
-
-// Diagnostics for reconnect reasons
-redisClient.on('reconnecting', (time) => {
-  console.warn('[redis] reconnecting in', time, 'ms');
-});
-redisClient.on('end', () => {
-  console.warn('[redis] connection ended');
-});
-redisClient.on('close', () => {
-  console.warn('[redis] connection closed');
-});
-
-// Heartbeat to prevent idle disconnects
-setInterval(() => {
-  redisClient.ping().catch(() => {});
-}, 30000);
-
-// ----- Session store -----
 function parseSecrets(input) {
   try {
     const parsed = JSON.parse(input);
@@ -137,34 +67,31 @@ const cookieSecure = String(process.env.SESSION_COOKIE_SECURE || '').toLowerCase
 const cookieSameSite = (process.env.SESSION_COOKIE_SAMESITE || 'lax');
 const cookieMaxAge = Number(process.env.SESSION_COOKIE_MAXAGE_MS || (1000 * 60 * 60 * 24 * 7));
 
-const store = new RedisStore({
-  client: redisClient,
-  prefix: '' // we already applied keyPrefix at client level
-});
+// ----- Cookie-based session (stateless) -----
 
 // Use __Host- cookie name only when Secure is true; otherwise browsers will reject it.
 const cookieName = cookieSecure
   ? (process.env.SESSION_NAME || '__Host-bif.sid')
-  : 'bif.sid';
+  : (process.env.SESSION_NAME || 'bif.sid');
 
-app.use(session({
+// Normalize keys for cookie-session: array of secrets/keys
+const sessionKeys = Array.isArray(sessionSecrets) ? sessionSecrets : [String(sessionSecrets || '')].filter(Boolean);
+if (sessionKeys.length === 0) {
+  // dev-only fallback to avoid crashing if no env provided
+  sessionKeys.push(crypto.randomBytes(32).toString('hex'));
+}
+
+app.use(cookieSession({
   name: cookieName,
-  secret: sessionSecrets,
-  store,
-  resave: false,
-  saveUninitialized: false,
-  rolling: String(process.env.SESSION_ROLLING || 'false').toLowerCase() === 'true',
-  proxy: String(process.env.TRUST_PROXY || '0') === '1',
-  cookie: {
-    httpOnly: true,
-    secure: cookieSecure,
-    sameSite: cookieSameSite,
-    path: '/',
-    maxAge: cookieMaxAge
-  },
-  genid: () => require('crypto').randomUUID()
+  keys: sessionKeys,
+  // proxy trust still matters for Secure cookies behind reverse proxies
+  // (leave app.set('trust proxy', 1) controlled by TRUST_PROXY above)
+  maxAge: cookieMaxAge,
+  httpOnly: true,
+  secure: cookieSecure,
+  sameSite: cookieSameSite,
+  path: '/',
 }));
-
 
 // Seed guest role in every fresh session
 app.use((req, res, next) => {
