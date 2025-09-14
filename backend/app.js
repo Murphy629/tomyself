@@ -65,21 +65,37 @@ const redisOptions = {
   enableOfflineQueue: true,
   maxRetriesPerRequest: null,
   lazyConnect: true,
+  keepAlive: 1,
+  noDelay: true,
+  connectTimeout: 10000,
+  connectionName: 'app-session',
   retryStrategy(times) {
     // back off up to 2s
     return Math.min(times * 200, 2000);
   },
   reconnectOnError(err) {
-    // Always attempt to reconnect on transient errors
-    return true;
+    const code = err?.code ? String(err.code) : '';
+    const msg  = err?.message ? String(err.message) : '';
+    // Reconnect only for transport/replica issues; avoid loops on ACL/app errors
+    if (code === 'ECONNRESET' || code === 'ETIMEDOUT' || code === 'EPIPE') return true;
+    if (msg.includes('READONLY')) return true; // replica state change
+    return false;
   }
 };
 if (String(process.env.REDIS_TLS_ENABLED || 'false') === 'true') {
   redisOptions.tls = {};
 }
 const redisClient = new Redis(redisOptions);
+app.locals.redis = redisClient;
 redisClient.on('error', (err) => {
-  console.error('[redis] error:', err.message);
+  console.error(
+    '[redis] error:',
+    err?.message,
+    'cmd=',
+    err?.command?.name || '-',
+    'code=',
+    err?.code || '-'
+  );
 });
 redisClient.on('connect', () => {
   console.log('[redis] connected');
@@ -88,6 +104,22 @@ redisClient.on('connect', () => {
 redisClient.on('ready', () => {
   console.log('[redis] ready');
 });
+
+// Diagnostics for reconnect reasons
+redisClient.on('reconnecting', (time) => {
+  console.warn('[redis] reconnecting in', time, 'ms');
+});
+redisClient.on('end', () => {
+  console.warn('[redis] connection ended');
+});
+redisClient.on('close', () => {
+  console.warn('[redis] connection closed');
+});
+
+// Heartbeat to prevent idle disconnects
+setInterval(() => {
+  redisClient.ping().catch(() => {});
+}, 30000);
 
 // ----- Session store -----
 function parseSecrets(input) {

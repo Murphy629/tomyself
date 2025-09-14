@@ -7,17 +7,12 @@ const router = express.Router();
 
 // GET /tests/sessions - return current session content (for testing only)
 router.get('/', async (req, res) => {
-  try {
-    res.set('Cache-Control', 'no-store');
-    res.type('application/json');
-    req.session.viewedAt = Date.now(); // ensure an upsert happens
-    res.status(200).json({
-      sessionID: req.sessionID,
-      session: req.session
-    });
-  } finally {
-    if (!res.writableEnded) res.end();
-  }
+  res.set('Cache-Control', 'no-store');
+  res.type('application/json');
+  res.status(200).json({
+    sessionID: req.sessionID,
+    session: req.session || {}
+  });
 });
 
 
