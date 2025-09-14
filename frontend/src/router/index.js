@@ -74,7 +74,18 @@ const routes = [
     path: '/intro',
     name: 'Intro',
     component: IntroPage
-  }
+  },
+  {
+  path: "/verify/success",
+  name: "VerifySuccess",
+  component: () => import("../views/VerifySuccess.vue"),
+},
+{
+  path: "/verify/fail",
+  name: "VerifyFail",
+  component: () => import("../views/VerifyFail.vue"),
+}
+  
 ]
 
 const router = createRouter({

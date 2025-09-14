@@ -6,6 +6,9 @@ const crypto = require("crypto");
 const { nanoid } = require("nanoid");
 const mailer = require("./signupMailer");
 
+const normEmail = (s) => String(s || "").trim().toLowerCase();
+const normName = (s) => String(s || "").trim();
+
 const VERIFY_HOURS = Number(process.env.VERIFY_TOKEN_HOURS || 24);
 const nowMs = () => Date.now();
 const expiresInMs = (h) => nowMs() + h * 60 * 60 * 1000;
@@ -13,6 +16,7 @@ const sha256 = (s) => crypto.createHash("sha256").update(s).digest("hex");
 
 // Return { email, username, password_hash, email_verified } or null
 async function findUserByEmail(email) {
+  email = normEmail(email);
   const flux = `
     from(bucket: "${BUCKET_USERS}")
       |> range(start: -30y)
@@ -38,6 +42,8 @@ async function findUserByEmail(email) {
 }
 
 async function createUserPending({ email, username, password }) {
+  email = normEmail(email);
+  username = normName(username);
   const exists = await findUserByEmail(email);
   if (exists) return { ok: false, code: "EMAIL_EXISTS" };
 
@@ -69,8 +75,8 @@ async function createUserPending({ email, username, password }) {
 async function getVerifyTokenMeta(hashedToken) {
   const q1 = `
     from(bucket: "${BUCKET_TOKENS}")
-      |> range(start: -14d)
-      |> filter(fn: (r) => r._measurement == "tokens" and r.type == "verify" and r._field == "token" and r.token == "${hashedToken}")
+      |> range(start: -30d)
+      |> filter(fn: (r) => r._measurement == "tokens" and r.type == "verify" and r._field == "token" and r._value == "${hashedToken}")
       |> sort(columns: ["_time"], desc: true)
       |> limit(n:1)
       |> keep(columns:["email"])
@@ -99,7 +105,8 @@ async function getVerifyTokenMeta(hashedToken) {
 }
 
 async function verifyEmail(rawToken) {
-  const tokenHash = sha256(rawToken);
+  const clean = String(rawToken || "").trim();
+  const tokenHash = sha256(clean);
   const meta = await getVerifyTokenMeta(tokenHash);
   if (!meta) return { ok: false, code: "TOKEN_INVALID" };
   if (meta.used) return { ok: false, code: "TOKEN_USED" };
@@ -109,7 +116,7 @@ async function verifyEmail(rawToken) {
   writeUsers.writePoint(new Point("users").tag("email", meta.email).booleanField("email_verified", true));
   await writeTokens.flush();
   await writeUsers.flush();
-  return { ok: true };
+  return { ok: true, email: meta.email };
 }
 
 async function resendVerification(email) {

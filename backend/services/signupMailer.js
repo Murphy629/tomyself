@@ -14,10 +14,13 @@ if (!mock) {
 }
 
 function appBase() { return process.env.APP_BASE_URL || "http://localhost:5173"; }
+function backendBase() { return process.env.BACKEND_BASE_URL || ""; }
 const VERIFY_HOURS = Number(process.env.VERIFY_TOKEN_HOURS || 24);
 
 async function sendVerification(to, rawToken) {
-  const link = `${appBase()}/verify?token=${encodeURIComponent(rawToken)}`;
+  const link = backendBase()
+    ? `${backendBase()}/signup/verify?token=${encodeURIComponent(rawToken)}`
+    : `${appBase()}/verify?token=${encodeURIComponent(rawToken)}`;
   if (mock) {
     console.log("=== MOCK VERIFY EMAIL ===");
     console.log("To:", to);
