@@ -6,7 +6,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env'), override: true
 // console.log('Influx Org:', process.env.INFLUXDB_ORG);
 // console.log('Influx Bucket:', process.env.INFLUXDB_BUCKET);
 // console.log('Influx Token:', process.env.INFLUXDB_TOKEN);
-
+const signupRoutes = require("./routes/signup");
 
 var createError = require('http-errors');
 var express = require('express');
@@ -25,12 +25,12 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
 // ----- CORS (Dev) -----
 const whitelist = (process.env.CORS_WHITELIST || '')
   .split(',')
   .map(s => s.trim())
   .filter(Boolean);
+console.log("CORS whitelist loaded:", whitelist);
 
 const corsOptions = {
   origin(origin, cb) {
@@ -59,6 +59,9 @@ app.use(
     }
   })
 );
+
+// signup routes (must be after CORS + helmet)
+app.use("/signup", signupRoutes);
 
 // quick health
 app.get('/api/health', (req, res) => res.json({ ok: true }));

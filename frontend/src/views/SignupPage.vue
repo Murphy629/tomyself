@@ -101,7 +101,11 @@
               placeholder="name@example.com"
               autocomplete="email"
               required
+              @blur="checkEmail"
             />
+            <small v-if="emailState.checking" class="hint">Checking email…</small>
+            <small v-else-if="emailState.exists && emailState.verified" class="hint error">This email is already registered.</small>
+            <small v-else-if="emailState.exists && !emailState.verified" class="hint warn">This email is registered but not verified. You can resend the verification email below.</small>
           </label>
 
           <!-- Password -->
@@ -165,13 +169,24 @@
           </label>
 
           <!-- Submit -->
-          <button class="submit" type="submit">Create account</button>
-
+          <button class="submit" type="submit" :disabled="loading">
+            {{ loading ? 'Submitting…' : 'Create account' }}
+          </button>
+          <button
+            v-if="emailState.exists && !emailState.verified"
+            type="button"
+            class="resend"
+            @click="resendVerification"
+            :disabled="loading"
+            style="margin-top:8px"
+          >
+            {{ loading ? 'Sending…' : 'Resend verification email' }}
+          </button>
+          <p v-if="statusMsg" class="minor" :class="statusType" style="margin-top:8px">{{ statusMsg }}</p>
           <p class="minor">
             Already have an account?
             <router-link class="link" to="/login">Login</router-link>
           </p>
-          
         </form>
       </section>
     </div>
@@ -224,18 +239,101 @@ function onScroll() {
   activeSlide.value = Math.max(0, Math.min(2, idx))
 }
 
-function handleSubmit() {
+// ---- API client (fetch) ----
+const API_BASE: string = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:3000';
+async function request<T = any>(path: string, body?: any): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+    credentials: 'omit'
+  });
+  const isJson = (res.headers.get('content-type') || '').includes('application/json');
+  const data = isJson ? await res.json() : await res.text();
+  if (!res.ok) {
+    const message = isJson ? (data?.message || 'Request failed') : String(data);
+    throw new Error(message);
+  }
+  return data as T;
+}
+
+// ---- UI state for email check / submit ----
+type EmailState = { checking: boolean; exists: boolean; verified: boolean };
+const emailState = ref<EmailState>({ checking: false, exists: false, verified: false });
+const loading = ref(false);
+const statusMsg = ref('');
+const statusType = ref<'ok' | 'error' | 'warn'>('ok');
+
+async function checkEmail() {
+  if (!form.email) return;
+  emailState.value.checking = true;
+  try {
+    const r = await request<{ exists: boolean; verified: boolean }>('/signup/check-email', { email: form.email });
+    emailState.value = { checking: false, exists: !!r.exists, verified: !!r.verified };
+  } catch (e: any) {
+    emailState.value.checking = false;
+    // silent fail for UX; optionally show toast
+  }
+}
+
+async function handleSubmit() {
+  statusMsg.value = '';
+  statusType.value = 'ok';
+
   if (form.password !== form.confirm) {
-    alert('Passwords do not match.')
-    return
+    statusType.value = 'error';
+    statusMsg.value = 'Passwords do not match.';
+    return;
   }
   if (!form.accept) {
-    alert('Please accept the Terms & Privacy.')
-    return
+    statusType.value = 'warn';
+    statusMsg.value = 'Please accept the Terms & Privacy.';
+    return;
   }
-  alert(
-    `Signed up!\nName: ${form.name}\nEmail: ${form.email}\n(Password length: ${form.password.length})`
-  )
+  if (!form.name || !form.email || !form.password) {
+    statusType.value = 'error';
+    statusMsg.value = 'Please fill all required fields.';
+    return;
+  }
+
+  loading.value = true;
+  try {
+    // fullname maps to username on backend
+    const r = await request<{ message: string }>('/signup', {
+      email: form.email,
+      password: form.password,
+      fullname: form.name
+    });
+    statusType.value = 'ok';
+    statusMsg.value = r.message || 'Verification email sent. In dev, check backend console for the link.';
+    // reset sensitive input
+    form.password = '';
+    form.confirm = '';
+  } catch (e: any) {
+    statusType.value = 'error';
+    statusMsg.value = e.message || 'Signup failed.';
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function resendVerification() {
+  if (!form.email) {
+    statusType.value = 'warn';
+    statusMsg.value = 'Please enter your email first.';
+    return;
+  }
+  loading.value = true;
+  try {
+    const r = await request<{ message: string }>('/signup/resend', { email: form.email });
+    statusType.value = 'ok';
+    statusMsg.value = r.message || 'Verification re-sent if eligible.';
+  } catch (e: any) {
+    statusType.value = 'error';
+    statusMsg.value = e.message || 'Resend failed.';
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -564,4 +662,19 @@ input:focus {
 .dark .dot.active {
   background: #60a5fa; /* blue-400 to indicate active */
 }
+  .hint { display:block; margin-top:4px; font-size:12px; color:#667085; }
+  .hint.warn { color:#c2410c; }   /* amber-700 */
+  .hint.error { color:#b91c1c; }  /* red-700  */
+  .minor.ok { color: #16a34a; }   /* green-600 */
+  .minor.warn { color: #c2410c; }
+  .minor.error { color: #b91c1c; }
+  .resend {
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 0 12px;
+    cursor: pointer;
+  }
+  .resend:disabled { opacity: .6; cursor: not-allowed; }
 </style>
