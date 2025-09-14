@@ -26,6 +26,9 @@ if (String(process.env.TRUST_PROXY || '0') === '1') {
   app.set('trust proxy', 1);
 }
 
+// fast-fail favicon to avoid hanging network tab in browsers
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.use(logger('dev'));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false }));
