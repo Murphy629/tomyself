@@ -3,9 +3,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 require('dotenv').config({ path: path.resolve(__dirname, '.env'), override: true });
-// console.log('Influx Org:', process.env.INFLUXDB_ORG);
-// console.log('Influx Bucket:', process.env.INFLUXDB_BUCKET);
-// console.log('Influx Token:', process.env.INFLUXDB_TOKEN);
 
 
 var createError = require('http-errors');
