@@ -57,8 +57,8 @@ const routes = [
   },
   {
     path: '/panel-editor',
-    name: 'PanelEditor',
-    component: () => import('../views/PanelEditor.vue')
+    name: 'PanelEditorPage',
+    component: () => import('../views/PanelEditorPage.vue')
   },
   {
     path: '/settings',
@@ -74,7 +74,18 @@ const routes = [
     path: '/intro',
     name: 'Intro',
     component: IntroPage
-  }
+  },
+  {
+    path: '/panel/edit',
+    name: 'EditExistingPanel',
+    component: () => import('../views/Editor.vue')
+  },
+  // {
+  //   path: '/panel/create',
+  //   name: 'CreateNewPanel',
+  //   component: () => import('../views/Creator.vue')
+  // },
+
 ]
 
 const router = createRouter({
