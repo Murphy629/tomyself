@@ -1,3 +1,4 @@
+<!-- src/views/PanelEditor.vue -->
 <template>
   <div class="pe">
     <h1 class="page-title">Panel Editor</h1>
@@ -6,7 +7,7 @@
     <div class="layout">
       <!-- 左列 -->
       <aside class="left-col">
-        <!-- Selector（未改动） -->
+        <!-- Selector -->
         <section class="card">
           <div class="card-title">Selector</div>
 
@@ -49,17 +50,17 @@
           </div>
         </section>
 
-        <!-- Tabs（未改动） -->
+        <!-- Tabs -->
         <div class="tabs">
           <button :class="['tab', activeTab==='data' && 'tab-active']" @click="activeTab='data'">Data</button>
           <button :class="['tab', activeTab==='condition' && 'tab-active']" @click="activeTab='condition'">Condition</button>
         </div>
 
-        <!-- ===== Editor（仅此区域做了收紧与防溢出） ===== -->
+        <!-- ===== Editor ===== -->
         <section class="card">
           <div class="card-title">Editor</div>
 
-          <!-- Data（未改动逻辑，仅沿用样式） -->
+          <!-- Data -->
           <div v-if="activeTab==='data'" class="mt-10">
             <div class="muted">Data Explorer</div>
 
@@ -103,7 +104,7 @@
             </div>
           </div>
 
-          <!-- Condition（缩小字号/控件并杜绝横向溢出） -->
+          <!-- Condition -->
           <div v-else class="mt-10">
             <div class="muted">Filters</div>
 
@@ -203,13 +204,35 @@
         </section>
       </aside>
 
-      <!-- 右上 Grafana（未改动） -->
+      <!-- 右上 Grafana -->
       <section class="card preview">
-        <div class="card-title">Grafana Preview</div>
-        <div class="preview-box">Preview goes here</div>
+        <div class="row-between">
+          <div class="card-title">Grafana Preview</div>
+          <div class="row gap-8">
+            <button class="btn" @click="openTemplatePicker">
+              {{ selectedPanelType ? 'Change Template' : 'Choose Template' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 空态：出现模板宫格 -->
+        <EmptyStateTemplates
+          v-if="showEmptyTemplates"
+          @select="onPickTemplate"
+        />
+
+        <!-- 已选模板：先给占位，下一步接“本地预览/后端查询” -->
+        <div v-else class="preview-box">
+          <template v-if="selectedPanelType">
+            Selected template: <b>{{ selectedPanelType }}</b> (preview &amp; query coming next)
+          </template>
+          <template v-else>
+            Please select metrics or data, or click&nbsp;<b>Choose Template</b>&nbsp;to choose a template.
+          </template>
+        </div>
       </section>
 
-      <!-- 右下 Influx Code（未改动） -->
+      <!-- 右下 Influx Code -->
       <section class="card influx">
         <div class="row-between">
           <div class="card-title">Influx Code</div>
@@ -232,34 +255,30 @@
 
 <script setup>
 import { ref, computed, watch, defineComponent } from 'vue'
+import EmptyStateTemplates from '../components/panel-editor/EmptyStateTemplates.vue'
 
 /* 基础状态 */
 const isLoggedIn = ref(true)
-const queryText = ref('// Flux query will appear here')
-const activeTab = ref('data')
+const queryText   = ref('// Flux query will appear here')
+const activeTab   = ref('data')
 
 /* Selector 四大类 + 自定义 */
 const categories = ref([
-  { key: 'monitor',  title: 'Monitoring',      items: ['CPU load', 'Memory usage', 'Disk I/O', 'Network throughput', 'App logs', 'Containers/K8s'] },
-  { key: 'iot',      title: 'IoT & Sensors',   items: ['Temperature', 'Humidity', 'Energy consumption', 'Air quality', 'Pressure', 'Vibration'] },
-  { key: 'business', title: 'Business Metrics',items: ['Stock ticks', 'E-commerce analytics', 'Orders per min', 'Revenue', 'Power usage'] },
-  { key: 'realtime', title: 'Real-time Events',items: ['Gaming analytics', 'Website traffic', 'Streaming viewers', 'Latency', 'Error rate'] }
+  { key: 'monitor',  title: 'Monitoring',       items: ['CPU load', 'Memory usage', 'Disk I/O', 'Network throughput', 'App logs', 'Containers/K8s'] },
+  { key: 'iot',      title: 'IoT & Sensors',    items: ['Temperature', 'Humidity', 'Energy consumption', 'Air quality', 'Pressure', 'Vibration'] },
+  { key: 'business', title: 'Business Metrics', items: ['Stock ticks', 'E-commerce analytics', 'Orders per min', 'Revenue', 'Power usage'] },
+  { key: 'realtime', title: 'Real-time Events', items: ['Gaming analytics', 'Website traffic', 'Streaming viewers', 'Latency', 'Error rate'] }
 ])
-const activeCategory = ref('monitor')
+const activeCategory  = ref('monitor')
 const selectedMetrics = ref(new Set())
-const currentItems = computed(() => categories.value.find(c => c.key === activeCategory.value)?.items || [])
-
-function addCategory(){ const name=prompt('New category name'); if(!name) return
-  const key=name.toLowerCase().replace(/\s+/g,'-')+'-'+Date.now(); categories.value.push({ key, title:name, items:[] }); activeCategory.value=key }
-function addMetric(){ const name=prompt('New metric name'); if(!name) return
-  const cat=categories.value.find(c=>c.key===activeCategory.value); if(cat && !cat.items.includes(name)) cat.items.push(name) }
-function toggleMetric(item){ const s=new Set(selectedMetrics.value); s.has(item)?s.delete(item):s.add(item); selectedMetrics.value=s; rebuildQuery() }
-function clearSelectedMetrics(){ selectedMetrics.value=new Set(); rebuildQuery() }
+const currentItems    = computed(() =>
+  categories.value.find(c => c.key === activeCategory.value)?.items || []
+)
 
 /* Data 树 + 右键 */
-const expanded = ref(new Set(['root']))
+const expanded  = ref(new Set(['root']))
 const activePath = ref([])
-const dataTree = ref([
+const dataTree   = ref([
   { key:'monitor', title:'Monitoring & Observability', children:[
     { key:'cpu', title:'CPU load' }, { key:'memory', title:'Memory usage' },
     { key:'disk', title:'Disk I/O' }, { key:'net', title:'Network throughput' },
@@ -285,8 +304,9 @@ function selectDataPath(pathArr){ activePath.value=pathArr; rebuildQuery() }
 /* 右键菜单 */
 const ctxMenu = ref({ show:false, x:0, y:0, parentRef:null, index:null })
 function openContextMenu(ev, parentRef, index){
-  ev.preventDefault(); const rect=ev.currentTarget.getBoundingClientRect()
-  ctxMenu.value={ show:true, x:ev.clientX-rect.left, y:ev.clientY-rect.top, parentRef, index }
+  ev.preventDefault()
+  const rect = ev.currentTarget.getBoundingClientRect()
+  ctxMenu.value = { show:true, x:ev.clientX-rect.left, y:ev.clientY-rect.top, parentRef, index }
   setTimeout(()=>document.addEventListener('click', ()=>ctxMenu.value.show=false, { once:true }),0)
 }
 function ctxRename(){ const {parentRef,index}=ctxMenu.value; if(!parentRef) return
@@ -298,17 +318,102 @@ function ctxNewFile(){ const {parentRef}=ctxMenu.value; if(!parentRef) return
 function ctxDelete(){ const {parentRef,index}=ctxMenu.value; if(!parentRef) return
   parentRef.children.splice(index,1); ctxMenu.value.show=false }
 
+/* Grafana 模板选择状态 */
+const selectedPanelType   = ref(null)   // timeseries / stat / gauge / table ...
+const forceTemplatePicker = ref(false)  // 手动打开模板宫格
+const showEmptyTemplates  = computed(() =>
+  forceTemplatePicker.value ||
+  (!selectedPanelType.value && selectedMetrics.value.size === 0 && activePath.value.length === 0)
+)
+function openTemplatePicker(){ forceTemplatePicker.value = true }
+function onPickTemplate(type){ selectedPanelType.value = type; forceTemplatePicker.value = false }
+function resetTemplate(){ selectedPanelType.value = null }
+
+/* Selector 操作 */
+function addCategory(){
+  const name = prompt('New category name'); if(!name) return
+  const key = name.toLowerCase().replace(/\s+/g,'-') + '-' + Date.now()
+  categories.value.push({ key, title:name, items:[] })
+  activeCategory.value = key
+}
+function addMetric(){
+  const name = prompt('New metric name'); if(!name) return
+  const cat = categories.value.find(c => c.key === activeCategory.value)
+  if(cat && !cat.items.includes(name)) cat.items.push(name)
+}
+function toggleMetric(item){
+  const s = new Set(selectedMetrics.value)
+  s.has(item) ? s.delete(item) : s.add(item)
+  selectedMetrics.value = s
+  rebuildQuery()
+}
+function clearSelectedMetrics(){
+  selectedMetrics.value = new Set()
+  rebuildQuery()
+  resetTemplate() // 清空时回到空态模板
+}
+
+/* Condition 状态 */
+const timeStart = ref(''), timeEnd = ref('')
+const interval  = ref('1m'), aggFn = ref('mean')
+const sortDir   = ref('desc'), groupBy = ref('')
+const limitN    = ref(100), whereField = ref('_value'), whereOp = ref('>'), whereValue = ref()
+const fillMode  = ref(''), tz = ref('')
+
+/* Influx Code 导入导出 */
+const isImporting = ref(false)
+const tempImport  = ref('')
+function startImport(){ isImporting.value = true;  tempImport.value = '' }
+function confirmImport(){ queryText.value = tempImport.value || '// (empty)'; isImporting.value = false }
+function cancelImport(){ isImporting.value = false; tempImport.value = '' }
+function exportFlux(){
+  const blob = new Blob([queryText.value], { type:'text/plain;charset=utf-8' })
+  const a = document.createElement('a')
+  const t = new Date(), pad = n => String(n).padStart(2,'0')
+  a.href = URL.createObjectURL(blob)
+  a.download = `query_${t.getFullYear()}${pad(t.getMonth()+1)}${pad(t.getDate())}_${pad(t.getHours())}${pad(t.getMinutes())}${pad(t.getSeconds())}.flux`
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href)
+}
+
+/* 组装 Flux */
+function rebuildQuery(){
+  const bucket = 'my-bucket'
+  const pathComment = activePath.value.length ? `// path: ${activePath.value.join(' / ')}\n` : ''
+  const metrics = Array.from(selectedMetrics.value)
+  const metricsSet = metrics.length ? `["${metrics.join('","')}"]` : '[]'
+  const rangeStart = timeStart.value ? `time(v: "${timeStart.value}:00Z")` : '-1h'
+  const rangeStop  = timeEnd.value   ? `time(v: "${timeEnd.value}:00Z")`   : 'now()'
+  let whereLine = ''
+  if (whereField.value && whereOp.value && whereValue.value !== '' && whereValue.value !== undefined && whereValue.value !== null) {
+    whereLine = `\n  |> filter(fn: (r) => r.${whereField.value} ${whereOp.value} ${whereValue.value})`
+  }
+  const groupLine   = groupBy.value ? `\n  |> group(columns: ["${groupBy.value}"])` : ''
+  let   fillLine    = ''
+  if (fillMode.value === 'previous') fillLine = `\n  |> fill(usePrevious: true)`
+  else if (fillMode.value === 'linear') fillLine = `\n  |> fill(column: "_value", usePrevious: false)`
+  else if (fillMode.value === '0') fillLine = `\n  |> fill(value: 0)`
+  const tzLine      = tz.value ? `\n  |> timeShift(duration: 0h, location: "${tz.value}")` : ''
+  const metricFilter= metrics.length ? `\n  |> filter(fn: (r) => contains(value: r._measurement, set: ${metricsSet}))` : ''
+  const aggLine     = `\n  |> aggregateWindow(every: ${interval.value}, fn: ${aggFn.value}, createEmpty: false)`
+  const sortLine    = `\n  |> sort(columns: ["_time"], desc: ${sortDir.value === 'asc' ? 'false' : 'true'})`
+  const limitLine   = limitN.value ? `\n  |> limit(n: ${limitN.value})` : ''
+  queryText.value =
+`${pathComment}from(bucket: "${bucket}")
+  |> range(start: ${rangeStart}, stop: ${rangeStop})${metricFilter}${whereLine}${groupLine}${aggLine}${fillLine}${tzLine}${sortLine}${limitLine}`
+}
+watch([activePath, selectedMetrics, timeStart, timeEnd, interval, aggFn, sortDir, groupBy, limitN, whereField, whereOp, whereValue, fillMode, tz], rebuildQuery)
+  
 /* 递归节点组件 */
 const FolderNode = defineComponent({
   name:'FolderNode',
   props:{ node:Object, path:Array, expanded:Object, activePath:Array, parent:Object },
   emits:['toggle','select','context'],
   setup(props,{emit}){
-    const isOpen = computed(()=>props.expanded.has(props.path.join('/')))
+    const isOpen   = computed(()=>props.expanded.has(props.path.join('/')))
     const isActive = computed(()=>JSON.stringify(props.activePath)===JSON.stringify(props.path))
-    const toggle = ()=>emit('toggle', props.path.join('/'))
-    const select = ()=>emit('select', props.path)
-    const onCtx = (e)=>emit('context', e, props.parent, (props.parent.children||[]).findIndex(n=>n.key===props.node.key))
+    const toggle   = ()=>emit('toggle', props.path.join('/'))
+    const select   = ()=>emit('select', props.path)
+    const onCtx    = (e)=>emit('context', e, props.parent, (props.parent.children||[]).findIndex(n=>n.key===props.node.key))
     return { isOpen, isActive, toggle, select, onCtx }
   },
   template: `
@@ -338,60 +443,10 @@ const FolderNode = defineComponent({
     </li>
   `
 })
-
-/* Condition 状态 */
-const timeStart = ref(''), timeEnd = ref('')
-const interval = ref('1m'), aggFn = ref('mean')
-const sortDir = ref('desc'), groupBy = ref('')
-const limitN = ref(100), whereField = ref('_value'), whereOp = ref('>'), whereValue = ref()
-const fillMode = ref(''), tz = ref('')
-
-/* Influx Code 导入导出 */
-const isImporting = ref(false)
-const tempImport = ref('')
-function startImport(){ isImporting.value = true; tempImport.value = '' }
-function confirmImport(){ queryText.value = tempImport.value || '// (empty)'; isImporting.value = false }
-function cancelImport(){ isImporting.value = false; tempImport.value = '' }
-function exportFlux(){
-  const blob = new Blob([queryText.value], { type:'text/plain;charset=utf-8' })
-  const a = document.createElement('a')
-  const t = new Date(), pad = n=>String(n).padStart(2,'0')
-  a.href = URL.createObjectURL(blob)
-  a.download = `query_${t.getFullYear()}${pad(t.getMonth()+1)}${pad(t.getDate())}_${pad(t.getHours())}${pad(t.getMinutes())}${pad(t.getSeconds())}.flux`
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href)
-}
-
-/* 组装 Flux */
-function rebuildQuery(){
-  const bucket = 'my-bucket'
-  const pathComment = activePath.value.length ? `// path: ${activePath.value.join(' / ')}\n` : ''
-  const metrics = Array.from(selectedMetrics.value)
-  const metricsSet = metrics.length ? `["${metrics.join('","')}"]` : '[]'
-  const rangeStart = timeStart.value ? `time(v: "${timeStart.value}:00Z")` : '-1h'
-  const rangeStop  = timeEnd.value   ? `time(v: "${timeEnd.value}:00Z")`   : 'now()'
-  let whereLine = ''
-  if (whereField.value && whereOp.value && whereValue.value !== '' && whereValue.value !== undefined && whereValue.value !== null) {
-    whereLine = `\n  |> filter(fn: (r) => r.${whereField.value} ${whereOp.value} ${whereValue.value})`
-  }
-  const groupLine = groupBy.value ? `\n  |> group(columns: ["${groupBy.value}"])` : ''
-  let fillLine = ''
-  if (fillMode.value === 'previous') fillLine = `\n  |> fill(usePrevious: true)`
-  else if (fillMode.value === 'linear') fillLine = `\n  |> fill(column: "_value", usePrevious: false)`
-  else if (fillMode.value === '0') fillLine = `\n  |> fill(value: 0)`
-  const tzLine = tz.value ? `\n  |> timeShift(duration: 0h, location: "${tz.value}")` : ''
-  const metricFilter = metrics.length ? `\n  |> filter(fn: (r) => contains(value: r._measurement, set: ${metricsSet}))` : ''
-  const aggLine = `\n  |> aggregateWindow(every: ${interval.value}, fn: ${aggFn.value}, createEmpty: false)`
-  const sortLine = `\n  |> sort(columns: ["_time"], desc: ${sortDir.value === 'desc'})`
-  const limitLine = limitN.value ? `\n  |> limit(n: ${limitN.value})` : ''
-  queryText.value =
-`${pathComment}from(bucket: "${bucket}")
-  |> range(start: ${rangeStart}, stop: ${rangeStop})${metricFilter}${whereLine}${groupLine}${aggLine}${fillLine}${tzLine}${sortLine}${limitLine}`
-}
-watch([activePath, selectedMetrics, timeStart, timeEnd, interval, aggFn, sortDir, groupBy, limitN, whereField, whereOp, whereValue, fillMode, tz], rebuildQuery)
 </script>
 
 <style scoped>
-/* 布局与全局（未改动） */
+/* 布局与全局 */
 .layout{ display:grid; grid-template-columns:380px 1fr; grid-template-rows:auto auto; grid-template-areas:"left grafana" "left influx"; gap:16px; }
 .left-col{ grid-area:left; display:flex; flex-direction:column; gap:12px; }
 .pe{ padding:24px; }
@@ -414,12 +469,12 @@ watch([activePath, selectedMetrics, timeStart, timeEnd, interval, aggFn, sortDir
 .tab{ flex:1; padding:10px; border:1px solid #e6e8ee; background:#fff; border-radius:10px; font-size:13px; }
 .tab-active{ border-color:#3b82f6; background:#eff6ff; color:#1d4ed8; font-weight:700; }
 
-/* ====== Editor（仅此区域样式有调整） ====== */
+/* Editor 表单 */
 .fieldset{ margin-top:10px; padding:12px; border:1px dashed #d7dbe3; border-radius:10px; background:#fcfdff; }
 .fieldset.compact .row-2{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
 .fieldset.compact .row-3{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap:8px; }
 .no-overflow{ overflow:hidden; }
-.no-minwidth > *{ min-width:0; }         /* 关键：允许列内内容收缩（解决 datetime 溢出） */
+.no-minwidth > *{ min-width:0; }
 
 .field{ display:flex; flex-direction:column; gap:4px; }
 .label{ font-size:12px; color:#475569; }
@@ -434,7 +489,7 @@ watch([activePath, selectedMetrics, timeStart, timeEnd, interval, aggFn, sortDir
 .group-title{ font-weight:700; font-size:20px; color:#1f2937; margin-bottom:6px; }
 .hint{ margin-top:4px; font-size:11.5px; color:#94a3b8; }
 
-/* Data 树（未改动） */
+/* Data 树 */
 .tree{ border:1px dashed #d7dbe3; border-radius:10px; padding:10px; position:relative; }
 .tree-root{ display:flex; gap:6px; align-items:center; cursor:pointer; font-size:13.5px; }
 .tree-list{ list-style:none; margin:6px 0 0 16px; padding:0; }
@@ -443,12 +498,12 @@ watch([activePath, selectedMetrics, timeStart, timeEnd, interval, aggFn, sortDir
 .tree-row.active{ font-weight:700; color:#1d4ed8; }
 .code{ background:#f1f5f9; padding:2px 6px; border-radius:6px; }
 
-/* 右键菜单（未改动） */
+/* 右键菜单 */
 .ctx{ position:absolute; min-width:150px; background:#fff; border:1px solid #e6e8ee; border-radius:8px; padding:6px; box-shadow:0 10px 24px rgba(0,0,0,.08); list-style:none; }
 .ctx-item{ padding:7px 10px; border-radius:8px; cursor:pointer; font-size:13px; color:#334155; }
 .ctx-item:hover{ background:#f1f5f9; } .ctx-item.danger{ color:#b91c1c; }
 
-/* Influx Code（未改动） */
+/* Influx Code */
 .btn{ padding:8px 12px; border:1px solid #e6e8ee; background:#fff; border-radius:10px; font-size:13px; cursor:pointer; }
 .btn-ghost{ padding:5px 10px; border:1px dashed #cbd5e1; background:#fff; border-radius:999px; font-size:12px; cursor:pointer; }
 .btn-xs{ padding:3px 6px; font-size:12px; }
