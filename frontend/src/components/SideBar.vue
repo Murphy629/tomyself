@@ -103,7 +103,21 @@ const items = [
   { label: 'Settings',       to: '/settings',       icon: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm8 4a6.9 6.9 0 0 0-.1-1l2-1.5-2-3.5-2.3.9a7.3 7.3 0 0 0-1.7-1L13 2h-4l-.9 2.9a7.3 7.3 0 0 0-1.7 1L3.9 6l-2 3.5L4 11a6.9 6.9 0 0 0 0 2l-2.1 1.5 2 3.5 2.5-.9c.5.4 1.1.8 1.7 1L9 22h4l.9-2.9c.6-.2 1.2-.6 1.7-1l2.5.9 2-3.5L19.9 13c.1-.3.1-.7.1-1z' },
 ]
 
-const isActive = (item) => (item.to === '/' ? route.path === '/' : route.path.startsWith(item.to))
+const isActive = (item) => {
+  // Home exact match
+  if (item.to === '/') return route.path === '/'
+
+  // Special handling: keep Panel Editor menu active when user is in new nested panel flows
+  if (item.to === '/panel-editor') {
+    // Active for legacy /panel-editor, and for new flows like /panel/edit (and future /panel/create)
+    if (route.path.startsWith('/panel-editor')) return true
+    if (/^\/panel\/(edit|create)(\/|$)/.test(route.path)) return true
+    return false
+  }
+
+  // Default: prefix match
+  return route.path.startsWith(item.to)
+}
 
 // Resize + Collapse
 const MIN_W = 220

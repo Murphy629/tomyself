@@ -3,12 +3,15 @@
     <div class="fade-slide appear" style="--d: 60ms">
       <h1>Panel Editor</h1>
       <p>Put your content here.</p>
+      <PanelEditorSelector />
     </div>
   </div>
+
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
+import PanelEditorSelector from './PanelEditorSelector.vue'
 
 onMounted(() => {
   document.title = 'BetterInflux - Panel Editor'
